@@ -10,6 +10,7 @@ import re
 import ssl
 import urllib.request
 import urllib.parse
+import shutil
 
 PERIOD_KEYS = [
     'jan', 'feb', 'jan_feb', 'mar', 'apr', 'may', 'pre_monsoon',
@@ -260,7 +261,10 @@ def sync_to_github(base_dir, updated_date):
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(script_dir)
-    downloads_dir = os.path.join(os.path.expanduser("~"), "Downloads")
+    user_home = os.path.expanduser("~")
+    downloads_dir = os.path.join(user_home, "Downloads")
+    desktop_dir = os.path.join(user_home, "Desktop")
+    onedrive_desktop = os.path.join(user_home, "OneDrive", "Desktop")
     
     print("=" * 60)
     print("  KSNDMC DAILY RAINFALL STATUS AUTOMATED UPDATER")
@@ -269,37 +273,47 @@ def main():
     # Check online website for updated reports
     check_and_download_ksndmc_report(downloads_dir)
     
-    # Find candidate excel files
-    search_paths = [
-        os.path.join(script_dir, "*.xlsx"),
-        os.path.join(script_dir, "*.xls"),
-        os.path.join(parent_dir, "*.xlsx"),
-        os.path.join(downloads_dir, "*Rainfall*.xlsx"),
-        os.path.join(downloads_dir, "*Rainfall*.xls"),
-        os.path.join(downloads_dir, "*KSNDMC*.xlsx"),
-        os.path.join(downloads_dir, "*KSNDMC*.xls"),
-        os.path.join(downloads_dir, "*Karnataka*.xlsx"),
-        os.path.join(downloads_dir, "*Karnataka*.xls"),
+    # Find candidate excel files across Downloads, Desktop, and Workspace
+    search_dirs = [script_dir, parent_dir, downloads_dir, desktop_dir, onedrive_desktop]
+    search_patterns = [
+        "*.xlsx", "*.xls",
+        "*Rainfall*.xlsx", "*Rainfall*.xls",
+        "*KSNDMC*.xlsx", "*KSNDMC*.xls",
+        "*Karnataka*.xlsx", "*Karnataka*.xls"
     ]
     
     candidate_files = []
-    for pattern in search_paths:
-        candidate_files.extend(glob.glob(pattern))
+    for sdir in search_dirs:
+        if not os.path.exists(sdir):
+            continue
+        for pat in search_patterns:
+            candidate_files.extend(glob.glob(os.path.join(sdir, pat)))
         
-    # Exclude temp Excel files (~$)
+    # Remove duplicates & exclude temporary Excel files (~$)
+    candidate_files = list(set(candidate_files))
     candidate_files = [f for f in candidate_files if not os.path.basename(f).startswith("~$")]
     
     if not candidate_files:
         print("[ERROR] No Rainfall Excel file found!")
-        print("Please download the report from https://www.ksndmc.org/ into your Downloads or Rainfall_Status_App folder.")
+        print("Please place your Excel file in Downloads, Desktop, or the Rainfall_Status_App folder.")
         input("Press Enter to exit...")
         return
         
     latest_excel = max(candidate_files, key=os.path.getmtime)
     mtime = datetime.datetime.fromtimestamp(os.path.getmtime(latest_excel)).strftime("%Y-%m-%d %H:%M:%S")
-    print(f"[INFO] Using Latest Excel File: {latest_excel}")
+    print(f"[INFO] Detected Latest Excel File: {latest_excel}")
     print(f"[INFO] File Modified Time: {mtime}")
     
+    target_excel = os.path.join(script_dir, "Rainfall status.xlsx")
+    if os.path.abspath(latest_excel).lower() != os.path.abspath(target_excel).lower():
+        try:
+            print(f"[INFO] Synchronizing '{os.path.basename(latest_excel)}' -> '{target_excel}'...")
+            shutil.copy2(latest_excel, target_excel)
+            latest_excel = target_excel
+            print(f"[SUCCESS] Updated local Excel file repository!")
+        except Exception as e:
+            print(f"[WARN] Could not copy Excel file: {e}")
+
     json_data = parse_ksndmc_excel(latest_excel)
     print(f"[INFO] Parsed {len(json_data['districts'])} Districts & {len(json_data['taluks'])} Taluks.")
     
