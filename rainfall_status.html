@@ -1854,7 +1854,18 @@ function renderRegionalSeasonalAnalytics(regionKey) {
           <div class="bar-track" style="height:18px;">
             <div class="bar-fill" style="width:${Math.max(pct, 2)}%; background:${d.cat.color};"></div>
           </div>
-        } else {
+          <div class="bar-val">${d.actual} mm</div>
+        </div>
+      `;
+    });
+
+    html += `
+        </div>
+      </div>
+    `;
+
+    return html;
+  } else {
     // ALL REGIONS VIEW (Regionwise Comparison across Pre-Monsoon, SW Monsoon, NE Monsoon, Annual YTD)
     const periods = [
       { key: 'pre_monsoon', title: '🌱 Pre-Monsoon (March 1 – May 31)', color: '#059669', bgLight: '#ecfdf5' },
@@ -1986,23 +1997,6 @@ function renderRegionalSeasonalAnalytics(regionKey) {
         <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap:16px;">
           ${renderPeriodCard(periods[2])}
           ${renderPeriodCard(periods[3])}
-        </div>
-      </div>
-    `;
-
-    return html;
-  }mal} mm <span class="badge ${rm.data.cat.badgeClass}" style="font-size:9px; margin-left:3px;">${rm.data.dep > 0 ? '+' : ''}${rm.data.dep}%</span></div>
-          </div>
-        `;
-      });
-
-      html += `
-          </div>
-        </div>
-      `;
-    });
-
-    html += `
         </div>
       </div>
     `;
