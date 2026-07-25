@@ -191,7 +191,7 @@ def update_html_from_json(json_data, base_dir):
     html = html.replace('__JSON_UPDATED_DATE__', updated_date)
     html = html.replace('__JSON_PERIOD_DATES__', json_period_dates)
     
-    for fname in ['rainfall status.html', 'rainfall_status.html']:
+    for fname in ['index.html', 'rainfall status.html', 'rainfall_status.html']:
         out_path = os.path.join(base_dir, fname)
         with open(out_path, 'w', encoding='utf-8') as f:
             f.write(html)

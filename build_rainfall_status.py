@@ -16,8 +16,8 @@ template = template.replace('__JSON_TALUKS__', json_taluks)
 template = template.replace('__JSON_UPDATED_DATE__', json_updated_date)
 template = template.replace('__JSON_PERIOD_DATES__', json_period_dates)
 
-for fname in ['rainfall status.html', 'rainfall_status.html']:
+for fname in ['index.html', 'rainfall status.html', 'rainfall_status.html']:
     with open(fname, 'w', encoding='utf-8') as f:
         f.write(template)
 
-print('Updated rainfall status.html and rainfall_status.html successfully!')
+print('Updated index.html, rainfall status.html, and rainfall_status.html successfully!')
