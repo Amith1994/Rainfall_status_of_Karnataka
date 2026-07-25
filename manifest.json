@@ -1,0 +1,36 @@
+{
+  "name": "GKMS AgroMet Karnataka Weather Forecast",
+  "short_name": "GKMS Karnataka",
+  "description": "Block-level 5-day Weather Forecast for Karnataka Districts",
+  "start_url": "1st_updated.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FFF8F0",
+  "theme_color": "#C0496A",
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

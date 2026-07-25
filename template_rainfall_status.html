@@ -1,0 +1,2596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karnataka Rainfall Performance & Departure Analytics — KSNUAHS GKMS</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="karnataka_svg.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-heading: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+
+    --bg-dark: #090d16;
+    --bg-card: #ffffff;
+    --bg-app: #f1f5f9;
+    --bg-hero: linear-gradient(135deg, #090d16 0%, #0f172a 45%, #1e1b4b 100%);
+
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+
+    --primary-blue: #2563eb;
+    --accent-emerald: #059669;
+    --accent-orange: #d97706;
+    --accent-red: #dc2626;
+
+    --shadow-sm: 0 4px 20px rgba(15, 23, 42, 0.05);
+    --shadow-lg: 0 20px 40px -8px rgba(15, 23, 42, 0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-primary);
+    background: #f1f5f9;
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: #f1f5f9; }
+  ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #0284c7; }
+
+  /* HEADER NAVBAR */
+  header {
+    background: var(--bg-hero);
+    color: #ffffff;
+    padding: 18px 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    border-bottom: 2px solid rgba(56, 189, 248, 0.4);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 8px 30px rgba(9, 13, 22, 0.4);
+    backdrop-filter: blur(16px);
+  }
+
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    font-family: var(--font-primary);
+    font-size: 13px;
+    font-weight: 700;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
+    border: 1.5px solid rgba(56, 189, 248, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .nav-btn:hover {
+    background: #0284c7;
+    color: #ffffff;
+    border-color: #0284c7;
+    box-shadow: 0 4px 14px rgba(2,132,199,0.4);
+  }
+
+  .updated-date-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px;
+    background: rgba(56, 189, 248, 0.12);
+    border: 1.5px solid rgba(56, 189, 248, 0.4);
+    border-radius: 10px;
+    color: #38bdf8;
+    box-shadow: 0 2px 10px rgba(2, 132, 199, 0.25);
+    white-space: nowrap;
+  }
+  .updated-date-icon {
+    font-size: 20px;
+  }
+  .updated-date-content {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+  .updated-date-label {
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    color: #94a3b8;
+    text-transform: uppercase;
+  }
+  .updated-date-value {
+    font-size: 14px;
+    font-weight: 800;
+    color: #38bdf8;
+    letter-spacing: 0.5px;
+  }
+
+  .brand-title {
+    font-family: var(--font-heading);
+    font-size: clamp(15px, 1.4vw, 20px);
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+  }
+
+  .brand-sub {
+    font-size: 12.5px;
+    color: #94a3b8;
+    font-weight: 500;
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    font-family: var(--font-primary);
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+    background: #059669;
+    border: 1.5px solid #10b981;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(16,185,129,0.3);
+  }
+  .upload-btn:hover { background: #047857; }
+  #excel-file-input { display: none; }
+
+  /* APP BODY CONTAINER */
+  .app-container {
+    max-width: 1750px;
+    margin: 0 auto;
+    padding: 24px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  /* HERO KPI BANNER */
+  .hero-stats-banner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .kpi-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 22px 24px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 5px;
+  }
+  .kpi-actual::before { background: linear-gradient(90deg, #2563eb, #3b82f6); }
+  .kpi-normal::before { background: linear-gradient(90deg, #0284c7, #38bdf8); }
+  .kpi-dep::before { background: linear-gradient(90deg, #059669, #34d399); }
+  .kpi-dist::before { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+
+  .kpi-title {
+    font-size: 11.5px;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .kpi-num {
+    font-family: var(--font-heading);
+    font-size: 32px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+  }
+  .kpi-sub {
+    font-size: 13px;
+    color: var(--text-main);
+    font-weight: 600;
+  }
+
+  /* DASHBOARD TAB NAVIGATION BAR */
+  .dashboard-tabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #0f172a;
+    padding: 6px;
+    border-radius: 16px;
+    border: 1px solid #1e293b;
+    box-shadow: var(--shadow-sm);
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 12px 20px;
+    font-family: var(--font-heading);
+    font-size: 13.5px;
+    font-weight: 700;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    letter-spacing: 0.3px;
+  }
+  .tab-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .tab-btn.active {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    border-color: #3b82f6;
+    color: #ffffff;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+  }
+
+  /* TAB PANELS CONTAINER */
+  .tab-panel { display: none; flex-direction: column; gap: 20px; }
+  .tab-panel.active { display: flex; }
+
+  /* TAB 1: MAP & SIDEBAR GRID (30% SIDEBAR | 70% MAP) */
+  .map-and-sidebar-grid {
+    display: grid;
+    grid-template-columns: 30fr 70fr;
+    gap: 20px;
+    align-items: stretch;
+  }
+
+  @media (max-width: 1100px) {
+    .map-and-sidebar-grid { grid-template-columns: 1fr; }
+  }
+
+  .sidebar-panel-30 {
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 18px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .section-heading {
+    font-size: 13px;
+    font-weight: 800;
+    color: #0f172a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1.5px solid #e2e8f0;
+    padding-bottom: 8px;
+  }
+
+  /* Period Pills */
+  .period-pills-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .p-pill {
+    padding: 6px 10px;
+    font-family: var(--font-primary);
+    font-size: 11.5px;
+    font-weight: 600;
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 6px;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.2s;
+    flex: 1 1 calc(50% - 6px);
+    text-align: center;
+  }
+  .p-pill.full-width { flex: 1 1 100%; font-weight: 700; text-align: left; }
+  .p-pill:hover { border-color: #0284c7; color: #0284c7; background: #e0f2fe; }
+  .p-pill.active {
+    background: #0284c7 !important;
+    border-color: #0284c7 !important;
+    color: #ffffff !important;
+    font-weight: 700;
+    box-shadow: 0 3px 10px rgba(2,132,199,0.3) !important;
+  }
+
+  /* Metric Buttons */
+  .metric-stack { display: flex; flex-direction: column; gap: 5px; }
+  .m-btn {
+    padding: 7px 12px;
+    font-family: var(--font-primary);
+    font-size: 12px;
+    font-weight: 600;
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 6px;
+    color: var(--text-main);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+  }
+  .m-btn:hover { border-color: #0284c7; background: #e0f2fe; }
+  .m-btn.active {
+    background: #0f172a;
+    border-color: #0f172a;
+    color: #ffffff;
+    font-weight: 700;
+  }
+
+  /* Region Pills */
+  .region-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+  .r-pill {
+    padding: 5px 10px;
+    font-family: var(--font-primary);
+    font-size: 11.5px;
+    font-weight: 700;
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    flex: 1 1 45%;
+    text-align: center;
+  }
+  .r-pill:hover { color: #0f172a; border-color: #94a3b8; }
+  .r-pill.active {
+    background: #f3e8ff;
+    border-color: #7c3aed;
+    color: #7c3aed;
+  }
+
+  /* MAP CANVAS CONTAINER */
+  .map-container-70 {
+    background: linear-gradient(135deg, #fffdf5 0%, #fefae0 100%);
+    border: 2px solid #cbd5e1;
+    border-radius: 18px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    min-height: 640px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+  }
+  .map-container-70:active { cursor: grabbing; }
+
+  .map-top-bar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    z-index: 10;
+  }
+  .map-heading {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .zoom-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 4px;
+    z-index: 20;
+  }
+  .z-btn {
+    width: 32px; height: 32px;
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .z-btn:hover { background: #e0f2fe; color: #0284c7; }
+
+  #karnataka-svg-container {
+    width: 100%;
+    height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.05s ease-out;
+    transform-origin: center center;
+  }
+  svg#karnataka-map {
+    width: 100%; height: 100%;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.15));
+  }
+
+  .district-path {
+    stroke: #0f172a;
+    stroke-width: 1.8;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .district-path:hover {
+    stroke: #0284c7;
+    stroke-width: 3.8;
+    filter: drop-shadow(0 6px 16px rgba(2,132,199,0.75));
+  }
+  .district-path.selected {
+    stroke: #991b1b !important;
+    stroke-width: 5.5px !important;
+    filter: drop-shadow(0 10px 25px rgba(153,27,27,0.95)) !important;
+  }
+  .district-path.dimmed {
+    opacity: 0.15 !important;
+    fill: #cbd5e1 !important;
+    stroke: #94a3b8 !important;
+    stroke-width: 1px !important;
+    pointer-events: none !important;
+  }
+  .district-label.dimmed {
+    opacity: 0.1 !important;
+  }
+
+  .district-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    fill: #ffffff !important;
+    text-anchor: middle;
+    pointer-events: none;
+    paint-order: stroke fill;
+    stroke: #090d16 !important;
+    stroke-width: 4px !important;
+  }
+
+  /* LEGEND */
+  .legend-box {
+    width: 100%;
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 10;
+  }
+  .legend-strip {
+    height: 16px;
+    border-radius: 6px;
+    display: flex;
+    overflow: hidden;
+    border: 1.5px solid #cbd5e1;
+  }
+  .legend-seg { flex: 1; height: 100%; }
+  .legend-txt { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #334155; }
+
+  /* OVERVIEW SUMMARY BOX */
+  .summary-card {
+    background: #ffffff;
+    border: 2px solid #94a3b8;
+    border-left: 6px solid #0284c7;
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .summary-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1.5px solid #cbd5e1;
+    padding-bottom: 12px;
+  }
+  .summary-body {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #000000 !important;
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-left: 5px solid #0f172a;
+    padding: 18px 22px;
+    border-radius: 12px;
+  }
+
+  /* TAB 2: HYDRO-CLIMATIC ANALYTICS & BAR CHARTS */
+  .analytics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 900px) { .analytics-grid { grid-template-columns: 1fr; } }
+
+  .chart-card {
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .chart-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: #0f172a;
+    border-bottom: 1.5px solid #cbd5e1;
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .bar-label {
+    width: 140px;
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .bar-track {
+    flex: 1;
+    min-width: 60px;
+    height: 18px;
+    background: #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.6s ease;
+  }
+  .bar-val {
+    min-width: 145px;
+    flex-shrink: 0;
+    font-size: 12.5px;
+    font-weight: 800;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  /* TAB 3: DATA TABLE SECTION */
+  .table-card {
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+  .table-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .search-box {
+    padding: 8px 14px;
+    font-family: var(--font-primary);
+    font-size: 13px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    width: 260px;
+    outline: none;
+  }
+  .search-box:focus { border-color: #0284c7; box-shadow: 0 0 0 3px rgba(2,132,199,0.15); }
+
+  .v-btn {
+    padding: 8px 14px;
+    font-family: var(--font-primary);
+    font-size: 13px;
+    font-weight: 700;
+    background: #f1f5f9;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .v-btn.active { background: #0f172a; border-color: #0f172a; color: #ffffff; }
+
+  .exp-btn {
+    padding: 8px 14px;
+    font-family: var(--font-primary);
+    font-size: 13px;
+    font-weight: 700;
+    background: #d1fae5;
+    border: 1.5px solid #6ee7b7;
+    color: #047857;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .exp-btn:hover { background: #059669; color: #ffffff; }
+
+  .table-wrap {
+    max-height: 540px;
+    overflow-y: auto;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 12px;
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .data-table th {
+    background: #0f172a;
+    color: #ffffff;
+    padding: 11px 14px;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    cursor: pointer;
+    border-right: 1px solid #334155;
+  }
+  .data-table td {
+    padding: 10px 14px;
+    font-size: 13.5px;
+    border-bottom: 1px solid #cbd5e1;
+    border-right: 1px solid #e2e8f0;
+    color: #0f172a;
+  }
+  .data-table tr:nth-child(even) { background: #f8fafc; }
+  .data-table tr:hover { background: #f1f5f9; }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+  }
+  .badge-le { background: #2563eb; color: #ffffff; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
+  .badge-e { background: #0284c7; color: #ffffff; box-shadow: 0 2px 8px rgba(2,132,199,0.3); }
+  .badge-n { background: #059669; color: #ffffff; box-shadow: 0 2px 8px rgba(5,150,105,0.3); }
+  .badge-d { background: #d97706; color: #ffffff; box-shadow: 0 2px 8px rgba(217,119,6,0.3); }
+  .badge-ld { background: #dc2626; color: #ffffff; box-shadow: 0 2px 8px rgba(220,38,38,0.3); }
+  .badge-nr { background: #475569; color: #ffffff; }
+
+  /* TOOLTIP */
+  #map-tooltip {
+    position: fixed;
+    pointer-events: none;
+    background: rgba(15, 23, 42, 0.95);
+    color: #ffffff;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    z-index: 2000;
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(4px);
+  }
+
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 13px;
+    color: var(--text-muted);
+    border-top: 1px solid #cbd5e1;
+    margin-top: auto;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav-brand">
+    <div class="updated-date-card" title="Latest KSNDMC Rainfall Status Date">
+      <span class="updated-date-icon">📅</span>
+      <div class="updated-date-content">
+        <span class="updated-date-label">DATA UPDATED AS ON</span>
+        <span class="updated-date-value" id="updated-data-date-val">__JSON_UPDATED_DATE__</span>
+      </div>
+    </div>
+    <div>
+      <div class="brand-title">KSNUAHS — GKMS AgroMet Field Unit (AMFU), Hiriyur</div>
+      <div class="brand-sub">Karnataka Hydro-Climatic Rainfall Performance & Departure Analytics Dashboard</div>
+    </div>
+  </div>
+  <div class="nav-actions">
+    <label for="excel-file-input" class="upload-btn">
+      📁 UPLOAD RAINFALL STATUS.XLSX
+    </label>
+    <input type="file" id="excel-file-input" accept=".xls,.xlsx">
+    <button class="nav-btn" onclick="resetAllFilters()">⟳ RESET</button>
+  </div>
+</header>
+
+<div class="app-container">
+
+  <!-- 1. HERO KPI BANNER -->
+  <div class="hero-stats-banner">
+    <div class="kpi-card kpi-actual">
+      <div class="kpi-title">🌧️ Statewide Actual Rain</div>
+      <div class="kpi-num" id="kpi-actual-val">0.0 mm</div>
+      <div class="kpi-sub" id="kpi-actual-sub">Southwest Monsoon Period</div>
+    </div>
+    <div class="kpi-card kpi-normal">
+      <div class="kpi-title">📏 Statewide Normal Rain</div>
+      <div class="kpi-num" id="kpi-normal-val">0.0 mm</div>
+      <div class="kpi-sub" id="kpi-normal-sub">Expected IMD Climate Normal</div>
+    </div>
+    <div class="kpi-card kpi-dep">
+      <div class="kpi-title">📉 % Departure (%DEP)</div>
+      <div class="kpi-num" id="kpi-dep-val">0.0 %</div>
+      <div class="kpi-sub" id="kpi-dep-sub">Statewide Status: Normal</div>
+    </div>
+    <div class="kpi-card kpi-dist">
+      <div class="kpi-title">📊 Category Breakdown</div>
+      <div class="kpi-num" id="kpi-dist-val">31 Districts</div>
+      <div class="kpi-sub" id="kpi-dist-sub">Normal: -- | Deficient: --</div>
+    </div>
+  </div>
+
+  <!-- ACTIVE DASHBOARD STATUS INFO BAR -->
+  <div style="background:#ffffff; border:1.5px solid #cbd5e1; border-left:6px solid #0f172a; border-radius:12px; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; box-shadow:var(--shadow-sm);">
+    <div style="font-size:13px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+      <span style="background:#0284c7; color:#ffffff; padding:3px 9px; border-radius:6px; font-weight:800; font-size:11.5px;">📌 CURRENT ACTIVE VIEW</span>
+      <span>Season / Period: <b style="color:#0284c7;" id="global-active-period">Southwest Monsoon Period</b></span>
+      <span style="color:#cbd5e1;">|</span>
+      <span>Scope: <b style="color:#0284c7;" id="global-active-region">All 31 Districts (240 Taluks)</b></span>
+    </div>
+    <div style="font-size:12px; color:#64748b; font-weight:600; display:flex; align-items:center; gap:12px;">
+      <span>💡 <i>Select any season/month in sidebar to switch data automatically</i></span>
+    </div>
+  </div>
+
+  <!-- 2. DASHBOARD TABS NAVIGATION -->
+  <div class="dashboard-tabs">
+    <button class="tab-btn active" onclick="switchTab('tab-map')">🗺️ SPATIAL MAP & CATEGORY MATRIX</button>
+    <button class="tab-btn" onclick="switchTab('tab-analytics')">📊 HYDRO-CLIMATIC BAR CHARTS</button>
+    <button class="tab-btn" onclick="switchTab('tab-table')">📋 DISTRICT & TALUK DATA EXPLORER</button>
+  </div>
+
+  <!-- TAB 1: SPATIAL MAP & CATEGORY MATRIX -->
+  <div class="tab-panel active" id="tab-map">
+    <div class="map-and-sidebar-grid">
+
+      <!-- LEFT SIDEBAR (30%) -->
+      <div class="sidebar-panel-30">
+
+        <!-- Time Period -->
+        <div>
+          <div class="section-heading">
+            <span>📅 Rainfall Season / Period</span>
+          </div>
+          <div class="period-pills-grid" style="margin-top:8px;">
+            <button class="p-pill full-width active" id="pill-sw_monsoon" data-period="sw_monsoon">🌊 SW Monsoon (June 1 - July 23)</button>
+            <button class="p-pill full-width" id="pill-july_mtd" data-period="july_mtd">📅 Month to Date (July 1 - 23)</button>
+            <button class="p-pill full-width" id="pill-last_24h" data-period="last_24h">⚡ Last 24 Hours</button>
+            <button class="p-pill full-width" id="pill-last_7d" data-period="last_7d">🗓️ Last 7 Days (July 17 - 23)</button>
+            <button class="p-pill full-width" id="pill-pre_monsoon" data-period="pre_monsoon">🌿 Pre-Monsoon (March - May)</button>
+            <button class="p-pill full-width" id="pill-ytd" data-period="ytd">📈 Year to Date (Jan 1 - July 23)</button>
+            <button class="p-pill" data-period="june">June</button>
+            <button class="p-pill" data-period="may">May</button>
+            <button class="p-pill" data-period="apr">April</button>
+            <button class="p-pill" data-period="mar">March</button>
+            <button class="p-pill" data-period="feb">Feb</button>
+            <button class="p-pill" data-period="jan">Jan</button>
+          </div>
+        </div>
+
+        <!-- Metric Mode -->
+        <div>
+          <div class="section-heading">
+            <span>📊 Map Color Fill Mode</span>
+          </div>
+          <div class="metric-stack" style="margin-top:8px;">
+            <button class="m-btn active" data-metric="category">🎨 Rainfall Status Category</button>
+            <button class="m-btn" data-metric="actual">🌧️ Actual Rainfall (mm)</button>
+            <button class="m-btn" data-metric="normal">📏 Normal Rainfall (mm)</button>
+            <button class="m-btn" data-metric="dep">📉 % Departure (%DEP)</button>
+          </div>
+        </div>
+
+        <!-- Region Filter -->
+        <div>
+          <div class="section-heading">
+            <span>🗺️ Region Filter</span>
+          </div>
+          <div class="region-grid" style="margin-top:8px;">
+            <button class="r-pill active" data-region="ALL">All Regions</button>
+            <button class="r-pill" data-region="Coastal">Coastal</button>
+            <button class="r-pill" data-region="NIK">NIK</button>
+            <button class="r-pill" data-region="SIK">SIK</button>
+            <button class="r-pill" data-region="Malnad">Malnad</button>
+          </div>
+        </div>
+
+        <!-- Selected District Profile Box -->
+        <div id="selected-district-info" style="display:none; padding:14px; background:#e0f2fe; border:1.5px solid #38bdf8; border-radius:12px;">
+          <div style="font-weight:800; color:#0369a1; font-size:14px;" id="selected-dist-title">District Name</div>
+          <div style="font-size:13px; color:#0f172a; margin-top:4px;" id="selected-dist-details">Details...</div>
+          <button class="nav-btn" onclick="selectDistrict(null)" style="margin-top:8px; padding:4px 10px; font-size:11px;">Clear Selection</button>
+        </div>
+
+      </div>
+
+      <!-- RIGHT MAP CANVAS (70%) -->
+      <div class="map-container-70">
+        <div class="map-top-bar">
+          <div class="map-heading">
+            <span id="map-header-metric">🌧️ Karnataka Rainfall Status Map</span>
+            <span style="font-size:13px; font-weight:600; color:#64748b; font-style:italic;" id="map-header-period">(Southwest Monsoon Period)</span>
+          </div>
+          <div class="zoom-box">
+            <button class="z-btn" id="zoom-in-btn" title="Zoom In">+</button>
+            <button class="z-btn" id="zoom-out-btn" title="Zoom Out">−</button>
+            <button class="z-btn" id="zoom-reset-btn" title="Reset Zoom">⟳</button>
+          </div>
+        </div>
+
+        <div id="karnataka-svg-container">
+          <svg id="karnataka-map" viewBox="0 0 750 1000">
+            <!-- Rendered dynamically -->
+          </svg>
+        </div>
+
+        <div class="legend-box">
+          <div class="legend-strip" id="legend-bar"></div>
+          <div class="legend-txt" id="legend-labels"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- OVERVIEW SUMMARY CARD -->
+    <div class="summary-card" id="district-summary-box">
+      <div class="summary-head">
+        <div style="font-size:19px; font-weight:800; color:#0f172a;" id="summary-box-dist-name">
+          🗺️ STATEWIDE KARNATAKA RAINFALL STATUS OVERVIEW
+        </div>
+        <div class="badge badge-n" id="summary-box-warn-badge">🟢 NORMAL RAINFALL</div>
+      </div>
+      <div class="summary-body" id="summary-box-text">
+        Select any district on the map or region filter to view hydro-climatic details.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: HYDRO-CLIMATIC BAR CHARTS -->
+  <div class="tab-panel" id="tab-analytics">
+    <div style="background:#ffffff; border:1.5px solid #cbd5e1; border-left:6px solid #0284c7; border-radius:14px; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <div>
+        <div style="font-size:17px; font-weight:900; color:#0f172a;">📊 KARNATAKA HYDRO-CLIMATIC RAINFALL ANALYTICS DASHBOARD</div>
+        <div style="font-size:13px; font-weight:700; color:#0284c7; margin-top:4px;">
+          🗓️ <b>REPORT DATE STAMP:</b> As on <span style="color:#0f172a;">21st July 2026</span> (Daily 24-Hr Ending at 08:30 AM IST) | Active Period: <b style="color:#0f172a;" id="analytics-date-stamp">Southwest Monsoon Period</b>
+        </div>
+      </div>
+      <span class="badge badge-n" style="font-size:13px; padding:6px 12px;">STATEWIDE MONTH-WISE & DAY-WISE CHARTS</span>
+    </div>
+
+    <!-- Chart Row 1: Statewide Month-Wise Progression & Day-Wise Short Term -->
+    <div class="analytics-grid">
+      <!-- Statewide Month-Wise Bar Chart -->
+      <div class="chart-card">
+        <div class="chart-title">
+          <span>📅 Statewide Month-Wise Rainfall Progression (Jan 2026 – July 2026)</span>
+          <span style="font-size:12px; color:var(--text-muted);">Actual vs Normal (mm)</span>
+        </div>
+        <div id="chart-monthwise-state"></div>
+      </div>
+
+      <!-- Day-Wise & Period Comparison Bar Chart -->
+      <div class="chart-card">
+        <div class="chart-title">
+          <span>⚡ Day-Wise & Seasonal Period Rainfall Comparison</span>
+          <span style="font-size:12px; color:var(--text-muted);">As on 21 July 2026</span>
+        </div>
+        <div id="chart-period-comparison"></div>
+      </div>
+    </div>
+
+    <!-- Chart Row 2: Top Wettest & Driest Districts -->
+    <div class="analytics-grid">
+      <!-- Chart 1: Top Wettest Districts -->
+      <div class="chart-card">
+        <div class="chart-title">
+          <span>🌧️ Top 8 Highest Rainfall Districts (Actual mm)</span>
+          <span style="font-size:12px; color:var(--text-muted);" id="chart1-period">Monsoon</span>
+        </div>
+        <div id="chart-top-wettest"></div>
+      </div>
+
+      <!-- Chart 2: Top Lowest / Deficient Districts -->
+      <div class="chart-card">
+        <div class="chart-title">
+          <span>🌵 Top 8 Lowest Rainfall Districts (Actual mm)</span>
+          <span style="font-size:12px; color:var(--text-muted);" id="chart2-period">Monsoon</span>
+        </div>
+        <div id="chart-top-driest"></div>
+      </div>
+
+      <!-- Chart 3: Region-wise Rainfall Performance -->
+      <div class="chart-card" style="grid-column: span 2;">
+        <div class="chart-title">
+          <span>🗺️ Regional Rainfall Departure % (Coastal, NIK, SIK, Malnad)</span>
+        </div>
+        <div id="chart-regions"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: DATA TABLE EXPLORER -->
+  <div class="tab-panel" id="tab-table">
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div style="font-size:18px; font-weight:800; color:#0f172a;">
+          <span>📋 Rainfall Status Data Table</span>
+          <span style="font-size:13px; font-weight:500; color:var(--text-muted); font-style:italic;" id="table-subtitle">(240 Taluks)</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <input type="text" id="table-search" class="search-box" placeholder="🔍 Search District or Taluk..." oninput="renderTable()">
+          <button class="v-btn active" id="view-taluk-btn" onclick="setTableView('taluk')">Taluk Level</button>
+          <button class="v-btn" id="view-district-btn" onclick="setTableView('district')">District Level</button>
+          <button class="exp-btn" onclick="exportTableToCSV()">📥 Export CSV</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table" id="weather-data-table">
+          <thead>
+            <tr id="table-head-row"></tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOOLTIP -->
+<div id="map-tooltip">
+  <div style="font-size:15px; font-weight:800; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:4px;" id="tt-district">District</div>
+  <div style="display:flex; justify-content:space-between; gap:12px; margin-top:4px;"><span>Actual Rain:</span> <span style="font-weight:800; color:#38bdf8;" id="tt-actual">0.0 mm</span></div>
+  <div style="display:flex; justify-content:space-between; gap:12px;"><span>Normal Rain:</span> <span style="font-weight:800; color:#38bdf8;" id="tt-normal">0.0 mm</span></div>
+  <div style="display:flex; justify-content:space-between; gap:12px;"><span>% Departure:</span> <span style="font-weight:800; color:#38bdf8;" id="tt-dep">0.0 %</span></div>
+  <div style="display:flex; justify-content:space-between; gap:12px; margin-top:2px;"><span>Status:</span> <span id="tt-cat">Normal</span></div>
+</div>
+
+<footer>
+  KSNUAHS-GKMS Hydro-Climatology Portal &copy; 2026. Data Source: KSNDMC & India Meteorological Department (IMD).
+</footer>
+
+<script>
+let DISTRICT_DATA = __JSON_DISTRICTS__;
+let TALUK_DATA = __JSON_TALUKS__;
+let UPDATED_DATE = "__JSON_UPDATED_DATE__";
+let PERIOD_DATES = __JSON_PERIOD_DATES__;
+
+const EXCEL_TO_SVG_MAP = {
+  'BAGALKOT': 'Bagalkote', 'BAGALKOTE': 'Bagalkote',
+  'BALLARI': 'Bellary', 'BELLARY': 'Bellary', 'VIJAYANAGAR': 'Bellary', 'VIJAYANAGARA': 'Bellary',
+  'BENGALURU RURAL': 'Bangalore rural', 'BENGALURU-RURAL': 'Bangalore rural', 'BANGALORE RURAL': 'Bangalore rural',
+  'BENGALURU URBAN': 'Bangalore urban', 'BENGALURU SOUTH': 'Bangalore urban', 'BANGALORE URBAN': 'Bangalore urban',
+  'BELAGAVI': 'Belagavi', 'BELGAUM': 'Belagavi', 'BIDAR': 'Bidar',
+  'BIJAPUR': 'Vijayapura', 'VIJAYAPURA': 'Vijayapura',
+  'CHAMARAJANAGARA': 'Chamrajnagar', 'CHAMARAJANAGAR': 'Chamrajnagar',
+  'CHIKKABALLAPURA': 'Kolar', 'CHIKBALLAPUR': 'Kolar',
+  'CHIKKAMAGALURU': 'Chikkamaga', 'CHIKMAGALURU': 'Chikkamaga',
+  'CHITRADURGA': 'Chitradurga',
+  'DAKSHINA KANNADA': 'Dakshina Kannada', 'DAKSHIN-KANNAD': 'Dakshina Kannada',
+  'DAVANAGERE': 'Davangere', 'DAVANGERE': 'Davangere', 'DHARWAD': 'Dharwad', 'GADAG': 'Gadag',
+  'KALABURAGI': 'Kalburgi', 'KALBURGI': 'Kalburgi', 'GULBARGA': 'Kalburgi',
+  'HASSAN': 'Hassan', 'HAVERI': 'Haveri', 'KODAGU': 'Kodugu', 'KODUGU': 'Kodugu',
+  'KOLAR': 'Kolar', 'KOPPALA': 'Koppal', 'KOPPAL': 'Koppal', 'MANDYA': 'Mandya',
+  'MYSURU': 'Mysore', 'MYSORE': 'Mysore', 'RAICHUR': 'Raichur', 'RAMANAGARA': 'Bangalore rural',
+  'SHIVAMOGGA': 'Shivamogga', 'SHIMOGA': 'Shivamogga', 'TUMAKURU': 'Tumkur', 'TUMKUR': 'Tumkur',
+  'UDUPI': 'Udupi', 'UTTARA KANNADA': 'Uttara kannada', 'UTTAR-KANNAD': 'Uttara kannada', 'YADGIR': 'Kalburgi'
+};
+
+function normalizeRegion(r) {
+  if (!r) return '';
+  const str = r.toString().toLowerCase();
+  if (str.includes('costal') || str.includes('coastal')) return 'Coastal';
+  if (str.includes('malnad')) return 'Malnad';
+  if (str.includes('nik')) return 'NIK';
+  if (str.includes('sik')) return 'SIK';
+  return r;
+}
+
+let state = {
+  period: 'sw_monsoon',
+  metric: 'category',
+  region: 'ALL',
+  selectedDistrict: null,
+  tableView: 'taluk',
+  sortCol: 'dep',
+  sortAsc: false
+};
+
+let mapZoom = 1, panX = 0, panY = 0, isDraggingMap = false, startX = 0, startY = 0, dragMoved = false;
+
+function applyMapTransform() {
+  const container = document.getElementById('karnataka-svg-container');
+  if (container) container.style.transform = `translate(${panX}px, ${panY}px) scale(${mapZoom})`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (UPDATED_DATE && document.getElementById('updated-data-date-val')) {
+    document.getElementById('updated-data-date-val').textContent = UPDATED_DATE;
+  }
+  updatePeriodLabelsUI();
+  initPeriodPills();
+  initMap();
+  initMetricButtons();
+  initRegionPills();
+  initZoomControls();
+  initFileUpload();
+  updateAll();
+});
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+
+  event.currentTarget.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+
+  if (tabId === 'tab-analytics') renderAnalyticsCharts();
+}
+
+function updateGlobalActiveFilterBar() {
+  const pEl = document.getElementById('global-active-period');
+  const rEl = document.getElementById('global-active-region');
+  if (pEl) pEl.textContent = PERIOD_DATE_MAP[state.period] || state.period;
+  if (rEl) rEl.textContent = state.region === 'ALL' ? 'All 31 Districts (240 Taluks)' : `${state.region} Region`;
+}
+
+function updateAll() {
+  updateGlobalActiveFilterBar();
+  updateKPIs();
+  updateMapColors();
+  renderTable();
+  updateMapTitle();
+  updateDistrictSummaryBox();
+  renderAnalyticsCharts();
+}
+
+function initPeriodPills() {
+  document.querySelectorAll('.p-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.p-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      state.period = pill.dataset.period;
+      updateAll();
+    });
+  });
+}
+
+function initMetricButtons() {
+  document.querySelectorAll('.m-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.metric = btn.dataset.metric;
+      updateAll();
+    });
+  });
+}
+
+function initRegionPills() {
+  document.querySelectorAll('.r-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.r-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      state.region = pill.dataset.region;
+      state.selectedDistrict = null;
+      document.getElementById('selected-district-info').style.display = 'none';
+      updateAll();
+    });
+  });
+}
+
+function initZoomControls() {
+  const wrapper = document.querySelector('.map-container-70');
+
+  document.getElementById('zoom-in-btn').addEventListener('click', () => { mapZoom = Math.min(mapZoom + 0.25, 4.0); applyMapTransform(); });
+  document.getElementById('zoom-out-btn').addEventListener('click', () => { mapZoom = Math.max(mapZoom - 0.25, 0.5); applyMapTransform(); });
+  document.getElementById('zoom-reset-btn').addEventListener('click', () => { mapZoom = 1; panX = 0; panY = 0; applyMapTransform(); });
+
+  wrapper.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    mapZoom = Math.min(Math.max(mapZoom * (e.deltaY < 0 ? 1.15 : 0.85), 0.5), 4.0);
+    applyMapTransform();
+  }, { passive: false });
+
+  wrapper.addEventListener('mousedown', (e) => {
+    if (e.button !== 0 || e.target.closest('.zoom-box') || e.target.closest('.legend-box')) return;
+    isDraggingMap = true; dragMoved = false; startX = e.clientX - panX; startY = e.clientY - panY;
+    wrapper.style.cursor = 'grabbing';
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDraggingMap) return;
+    const currentX = e.clientX - startX, currentY = e.clientY - startY;
+    if (Math.abs(currentX - panX) > 4 || Math.abs(currentY - panY) > 4) dragMoved = true;
+    panX = currentX; panY = currentY; applyMapTransform();
+  });
+
+  window.addEventListener('mouseup', () => { if (isDraggingMap) { isDraggingMap = false; wrapper.style.cursor = 'grab'; } });
+}
+
+function initMap() {
+  const svg = document.getElementById('karnataka-map');
+  svg.innerHTML = `<defs><filter id="shadow" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.2"/></filter></defs>`;
+
+  const pathGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  pathGroup.setAttribute('id', 'path-group');
+
+  const labelGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  labelGroup.setAttribute('id', 'label-group');
+
+  if (typeof KARNATAKA_DISTRICT_SVG !== 'undefined') {
+    for (const [distSvgName, distInfo] of Object.entries(KARNATAKA_DISTRICT_SVG)) {
+      const normReg = normalizeRegion(distInfo.region);
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', distInfo.path);
+      path.setAttribute('class', 'district-path');
+      path.setAttribute('data-svg-name', distSvgName);
+      path.setAttribute('data-region', normReg);
+
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', distInfo.centroid[0]);
+      text.setAttribute('y', distInfo.centroid[1]);
+      text.setAttribute('class', 'district-label');
+      text.setAttribute('data-svg-name', distSvgName);
+      text.textContent = getShortName(distSvgName);
+
+      path.addEventListener('mouseenter', (e) => showTooltip(e, distSvgName));
+      path.addEventListener('mousemove', (e) => moveTooltip(e));
+      path.addEventListener('mouseleave', () => hideTooltip());
+      path.addEventListener('click', () => { if (!dragMoved) selectDistrict(distSvgName); });
+
+      pathGroup.appendChild(path);
+      labelGroup.appendChild(text);
+    }
+  }
+
+  svg.appendChild(pathGroup);
+  svg.appendChild(labelGroup);
+}
+
+function getShortName(name) {
+  const map = {
+    'Bangalore rural': 'BLR RURAL', 'Bangalore urban': 'BLR URBAN', 'Chamrajnagar': 'CH.NAGAR',
+    'Dakshina Kannada': 'D.KANNADA', 'Uttara kannada': 'U.KANNADA', 'Chikkamaga': 'CHIKMAGALUR',
+    'Vijayapura': 'VIJAYAPURA', 'Shivamogga': 'SHIMOGA', 'Belagavi': 'BELGAUM', 'Kalburgi': 'GULBARGA'
+  };
+  return (map[name] || name).toUpperCase();
+}
+
+function getRainfallCategory(actual, normal, dep) {
+  if (actual === 0 && normal > 0) return { code: 'NR', name: 'No Rain', color: '#475569', badgeClass: 'badge-nr' };
+  if (dep >= 60) return { code: 'LE', name: 'Large Excess (+60% & above)', color: '#2563eb', badgeClass: 'badge-le' };
+  if (dep >= 20) return { code: 'E', name: 'Excess (+20% to +59%)', color: '#0284c7', badgeClass: 'badge-e' };
+  if (dep >= -19) return { code: 'N', name: 'Normal (-19% to +19%)', color: '#059669', badgeClass: 'badge-n' };
+  if (dep >= -59) return { code: 'D', name: 'Deficient (-20% to -59%)', color: '#d97706', badgeClass: 'badge-d' };
+  return { code: 'LD', name: 'Large Deficient (-60% & below)', color: '#dc2626', badgeClass: 'badge-ld' };
+}
+
+function getColorForMetric(actual, normal, dep, metric) {
+  if (metric === 'category') return getRainfallCategory(actual, normal, dep).color;
+  if (metric === 'actual') {
+    if (actual <= 0) return '#475569';
+    if (actual < 10) return '#0284c7';
+    if (actual < 25) return '#047857';
+    if (actual < 50) return '#1e40af';
+    if (actual < 100) return '#5b21b6';
+    return '#991b1b';
+  }
+  if (metric === 'normal') {
+    if (normal < 10) return '#94a3b8';
+    if (normal < 50) return '#0284c7';
+    if (normal < 100) return '#047857';
+    return '#1e40af';
+  }
+  return getRainfallCategory(actual, normal, dep).color;
+}
+
+function getDistrictObj(distSvgName) {
+  if (!distSvgName) return null;
+  const upperSvg = distSvgName.toUpperCase();
+
+  // 1. Direct case-insensitive match in DISTRICT_DATA
+  for (const [exName, obj] of Object.entries(DISTRICT_DATA)) {
+    if (exName.toUpperCase() === upperSvg) return obj;
+  }
+
+  // 2. EXCEL_TO_SVG_MAP lookup (case-insensitive on both sides)
+  if (typeof EXCEL_TO_SVG_MAP !== 'undefined') {
+    for (const [exName, svgMapped] of Object.entries(EXCEL_TO_SVG_MAP)) {
+      if (svgMapped.toUpperCase() === upperSvg) {
+        const exUpper = exName.toUpperCase();
+        for (const [realExName, obj] of Object.entries(DISTRICT_DATA)) {
+          if (realExName.toUpperCase() === exUpper) return obj;
+        }
+      }
+    }
+  }
+
+  // 3. Fallback substring match
+  for (const [exName, obj] of Object.entries(DISTRICT_DATA)) {
+    const kUpper = exName.toUpperCase();
+    if (kUpper === upperSvg || kUpper.includes(upperSvg) || upperSvg.includes(kUpper)) {
+      return obj;
+    }
+  }
+  return null;
+}
+
+function getDistrictMetrics(distSvgName, periodKey) {
+  const d = getDistrictObj(distSvgName);
+  let totAct = 0, totNorm = 0, count = 0;
+  if (d && d[periodKey]) {
+    totAct = d[periodKey].actual;
+    totNorm = d[periodKey].normal;
+    count = 1;
+  }
+  const avgAct = count > 0 ? round1(totAct) : 0;
+  const avgNorm = count > 0 ? round1(totNorm) : 0;
+  const dep = avgNorm > 0 ? round1(((avgAct - avgNorm) / avgNorm) * 100) : 0;
+  const cat = getRainfallCategory(avgAct, avgNorm, dep);
+  return { actual: avgAct, normal: avgNorm, dep: dep, cat: cat };
+}
+
+function round1(v) { return Math.round(v * 10) / 10; }
+
+function showTooltip(e, svgName) {
+  const tt = document.getElementById('map-tooltip');
+  const m = getDistrictMetrics(svgName, state.period);
+  document.getElementById('tt-district').textContent = svgName.toUpperCase();
+  document.getElementById('tt-actual').textContent = m.actual + ' mm';
+  document.getElementById('tt-normal').textContent = m.normal + ' mm';
+  document.getElementById('tt-dep').textContent = (m.dep > 0 ? '+' : '') + m.dep + ' %';
+  document.getElementById('tt-cat').innerHTML = `<span class="badge ${m.cat.badgeClass}">${m.cat.name}</span>`;
+  tt.style.display = 'flex'; moveTooltip(e);
+}
+
+function moveTooltip(e) {
+  const tt = document.getElementById('map-tooltip');
+  tt.style.left = (e.clientX + 16) + 'px'; tt.style.top = (e.clientY + 16) + 'px';
+}
+
+function hideTooltip() { document.getElementById('map-tooltip').style.display = 'none'; }
+
+function selectDistrict(svgName) {
+  state.selectedDistrict = (state.selectedDistrict === svgName) ? null : svgName;
+  const infoBox = document.getElementById('selected-district-info');
+  if (state.selectedDistrict) {
+    infoBox.style.display = 'block';
+    document.getElementById('selected-dist-title').textContent = '📍 ' + state.selectedDistrict.toUpperCase();
+    const m = getDistrictMetrics(state.selectedDistrict, state.period);
+    document.getElementById('selected-dist-details').innerHTML = `
+      Actual: <b>${m.actual} mm</b> | Normal: <b>${m.normal} mm</b><br>
+      Departure: <b>${m.dep > 0 ? '+' : ''}${m.dep} %</b> (${m.cat.name})
+    `;
+  } else { infoBox.style.display = 'none'; }
+  updateMapColors(); renderTable(); updateDistrictSummaryBox();
+}
+
+function updateMapColors() {
+  const pathGroup = document.getElementById('path-group');
+  const labelGroup = document.getElementById('label-group');
+
+  document.querySelectorAll('.district-path').forEach(path => {
+    const svgName = path.getAttribute('data-svg-name');
+    const normReg = normalizeRegion(path.getAttribute('data-region'));
+    if (!svgName) return;
+
+    path.classList.remove('selected', 'dimmed');
+    const m = getDistrictMetrics(svgName, state.period);
+    const color = getColorForMetric(m.actual, m.normal, m.dep, state.metric);
+    path.setAttribute('fill', color); path.style.fill = color;
+
+    const isRegionMatch = (state.region === 'ALL' || normReg === normalizeRegion(state.region));
+    if (!isRegionMatch) {
+      path.classList.add('dimmed');
+    }
+
+    if (state.selectedDistrict === svgName) {
+      path.classList.add('selected');
+      if (pathGroup) pathGroup.appendChild(path);
+    }
+  });
+
+  document.querySelectorAll('.district-label').forEach(lbl => {
+    const svgName = lbl.getAttribute('data-svg-name');
+    if (!svgName) return;
+    const normReg = normalizeRegion(KARNATAKA_DISTRICT_SVG[svgName]?.region);
+    lbl.classList.remove('selected', 'dimmed');
+
+    const isRegionMatch = (state.region === 'ALL' || normReg === normalizeRegion(state.region));
+    if (!isRegionMatch) {
+      lbl.classList.add('dimmed');
+    }
+
+    lbl.classList.toggle('selected', state.selectedDistrict === svgName);
+    if (labelGroup) labelGroup.appendChild(lbl);
+  });
+
+  updateLegend();
+}
+
+function updateLegend() {
+  const bar = document.getElementById('legend-bar'), labels = document.getElementById('legend-labels');
+  bar.innerHTML = `
+    <div class="legend-seg" style="background:#2563eb"></div>
+    <div class="legend-seg" style="background:#0284c7"></div>
+    <div class="legend-seg" style="background:#059669"></div>
+    <div class="legend-seg" style="background:#d97706"></div>
+    <div class="legend-seg" style="background:#dc2626"></div>
+    <div class="legend-seg" style="background:#475569"></div>
+  `;
+  labels.innerHTML = `<span>Large Excess (+60%)</span><span>Excess (+20%)</span><span>Normal (±19%)</span><span>Deficient (-20%)</span><span>Large Deficient (-60%)</span><span>No Rain</span>`;
+}
+
+function updateKPIs() {
+  let sumAct = 0, sumNorm = 0, count = 0, catCounts = { LE: 0, E: 0, N: 0, D: 0, LD: 0, NR: 0 };
+  Object.entries(DISTRICT_DATA).forEach(([distName, distObj]) => {
+    const normReg = normalizeRegion(distObj.region);
+    if (state.region !== 'ALL' && normReg !== normalizeRegion(state.region)) return;
+
+    const pData = distObj[state.period] || { normal: 0, actual: 0, dep: 0 };
+    const act = pData.actual;
+    const norm = pData.normal;
+    const dep = norm > 0 ? round1(((act - norm) / norm) * 100) : pData.dep;
+    const cat = getRainfallCategory(act, norm, dep);
+
+    sumAct += act; sumNorm += norm; count++;
+    if (catCounts[cat.code] !== undefined) catCounts[cat.code]++;
+  });
+
+  const avgAct = count > 0 ? round1(sumAct / count) : 0;
+  const avgNorm = count > 0 ? round1(sumNorm / count) : 0;
+  const dep = avgNorm > 0 ? round1(((avgAct - avgNorm) / avgNorm) * 100) : 0;
+  const cat = getRainfallCategory(avgAct, avgNorm, dep);
+
+  const regionLabel = state.region === 'ALL' ? 'Statewide' : `${state.region} Region`;
+
+  document.getElementById('kpi-actual-val').textContent = avgAct + ' mm';
+  document.getElementById('kpi-normal-val').textContent = avgNorm + ' mm';
+  document.getElementById('kpi-dep-val').innerHTML = `<span class="badge ${cat.badgeClass}">${dep > 0 ? '+' : ''}${dep} %</span>`;
+  document.getElementById('kpi-dep-sub').textContent = `${regionLabel} Status: ${cat.name}`;
+  document.getElementById('kpi-dist-val').textContent = `${count} Districts`;
+  document.getElementById('kpi-dist-sub').textContent = `Normal: ${catCounts.N} | Deficient: ${catCounts.D + catCounts.LD} | Excess: ${catCounts.E + catCounts.LE} (${count} Dists)`;
+}
+
+function updateMapTitle() {
+  document.getElementById('map-header-metric').textContent = '🌧️ Karnataka Current Status of Rainfall Map';
+}
+
+function renderDistrictDetailedAnalytics(distSvgName) {
+  const distObj = getDistrictObj(distSvgName);
+
+  // 1. Monthly progression data (Jan - July)
+  const months = [
+    { key: 'jan', label: 'Jan' },
+    { key: 'feb', label: 'Feb' },
+    { key: 'mar', label: 'Mar' },
+    { key: 'apr', label: 'Apr' },
+    { key: 'may', label: 'May' },
+    { key: 'june', label: 'June' },
+    { key: 'july_mtd', label: 'July (MTD)' }
+  ];
+
+  let monthlyData = [];
+  months.forEach(m => {
+    const pData = distObj && distObj[m.key] ? distObj[m.key] : { normal: 0, actual: 0, dep: 0 };
+    const avgA = pData.actual;
+    const avgN = pData.normal;
+    const dep = avgN > 0 ? round1(((avgA - avgN) / avgN) * 100) : pData.dep;
+    const cat = getRainfallCategory(avgA, avgN, dep);
+    monthlyData.push({ month: m.label, actual: avgA, normal: avgN, dep: dep, cat: cat });
+  });
+
+  // 2. Seasonal & Annual Progression Data (SW Monsoon, NE Monsoon, Annual YTD, Pre-Monsoon)
+  const getPeriodMetrics = (pkey) => {
+    if (distObj && distObj[pkey]) {
+      const act = distObj[pkey].actual;
+      const norm = distObj[pkey].normal;
+      const dep = norm > 0 ? round1(((act - norm) / norm) * 100) : distObj[pkey].dep;
+      const cat = getRainfallCategory(act, norm, dep);
+      return { actual: act, normal: norm, dep: dep, cat: cat, hasData: true };
+    }
+    return { actual: 0, normal: 0, dep: 0, cat: { name: 'Upcoming (Oct–Dec)', code: 'NR', badgeClass: 'badge-nr', color: '#64748b' }, hasData: false };
+  };
+
+  const swData = getPeriodMetrics('sw_monsoon');
+  const neData = getPeriodMetrics('ne_monsoon');
+  const ytdData = getPeriodMetrics('ytd');
+  const preData = getPeriodMetrics('pre_monsoon');
+
+  // 3. Taluks inside District
+  let talukRows = [];
+  TALUK_DATA.forEach(t => {
+    const svgMapped = EXCEL_TO_SVG_MAP[t.dist.toUpperCase()] || t.dist;
+    if (svgMapped.toLowerCase() === distSvgName.toLowerCase()) {
+      const pData = t[state.period] || { normal: 0, actual: 0, dep: 0 };
+      const cat = getRainfallCategory(pData.actual, pData.normal, pData.dep);
+      talukRows.push({ taluk: t.taluk, normal: pData.normal, actual: pData.actual, dep: pData.dep, cat: cat });
+    }
+  });
+
+  // Max values for scaling bar heights
+  const maxMonthVal = Math.max(...monthlyData.map(m => Math.max(m.actual, m.normal))) || 1;
+  const maxSeasonVal = Math.max(swData.actual, swData.normal, neData.actual, neData.normal, ytdData.actual, ytdData.normal, preData.actual, preData.normal) || 1;
+
+  let monthlyGraphHtml = `
+    <!-- Seasonal & Annual Overview Cards Grid -->
+    <div style="margin-top:14px; display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:10px;">
+      <!-- SW Monsoon Card -->
+      <div style="background:linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border:1.5px solid #0284c7; border-radius:12px; padding:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <span style="font-size:12px; font-weight:800; color:#0369a1;">🌊 SW MONSOON</span>
+          <span class="badge ${swData.cat.badgeClass}" style="font-size:10px;">${swData.cat.name}</span>
+        </div>
+        <div style="font-size:18px; font-weight:900; color:#0284c7;">${swData.actual} <span style="font-size:11px; font-weight:700; color:#475569;">/ ${swData.normal} mm</span></div>
+        <div style="font-size:10.5px; font-weight:700; color:#0369a1; margin-top:2px;">Dep: ${swData.dep > 0 ? '+' : ''}${swData.dep}% | ${PERIOD_DATES.sw_monsoon || 'June 1 – July 23'}</div>
+      </div>
+
+      <!-- NE Monsoon Card -->
+      <div style="background:linear-gradient(135deg, #fffbe6 0%, #fef3c7 100%); border:1.5px solid #d97706; border-radius:12px; padding:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <span style="font-size:12px; font-weight:800; color:#b45309;">🍂 NE MONSOON</span>
+          <span class="badge ${neData.hasData ? neData.cat.badgeClass : 'badge-nr'}" style="font-size:10px;">${neData.hasData ? neData.cat.name : 'Upcoming (Oct–Dec)'}</span>
+        </div>
+        <div style="font-size:18px; font-weight:900; color:#d97706;">${neData.actual} <span style="font-size:11px; font-weight:700; color:#475569;">/ ${neData.normal} mm</span></div>
+        <div style="font-size:10.5px; font-weight:700; color:#b45309; margin-top:2px;">${neData.hasData ? `Dep: ${neData.dep > 0 ? '+' : ''}${neData.dep}%` : 'Starts October 1'} | Oct 1 – Dec 31</div>
+      </div>
+
+      <!-- Annual YTD Card -->
+      <div style="background:linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border:1.5px solid #7c3aed; border-radius:12px; padding:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <span style="font-size:12px; font-weight:800; color:#6d28d9;">📈 ANNUAL (YTD)</span>
+          <span class="badge ${ytdData.cat.badgeClass}" style="font-size:10px;">${ytdData.cat.name}</span>
+        </div>
+        <div style="font-size:18px; font-weight:900; color:#7c3aed;">${ytdData.actual} <span style="font-size:11px; font-weight:700; color:#475569;">/ ${ytdData.normal} mm</span></div>
+        <div style="font-size:10.5px; font-weight:700; color:#6d28d9; margin-top:2px;">Dep: ${ytdData.dep > 0 ? '+' : ''}${ytdData.dep}% | ${PERIOD_DATES.ytd || 'Jan 1 – July 23'}</div>
+      </div>
+
+      <!-- Pre-Monsoon Card -->
+      <div style="background:linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border:1.5px solid #059669; border-radius:12px; padding:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <span style="font-size:12px; font-weight:800; color:#047857;">🌱 PRE-MONSOON</span>
+          <span class="badge ${preData.cat.badgeClass}" style="font-size:10px;">${preData.cat.name}</span>
+        </div>
+        <div style="font-size:18px; font-weight:900; color:#059669;">${preData.actual} <span style="font-size:11px; font-weight:700; color:#475569;">/ ${preData.normal} mm</span></div>
+        <div style="font-size:10.5px; font-weight:700; color:#047857; margin-top:2px;">Dep: ${preData.dep > 0 ? '+' : ''}${preData.dep}% | March 1 – May 31</div>
+      </div>
+    </div>
+
+    <!-- CARD 1: Monthly Rainfall Progression Bar Chart -->
+    <div style="margin-top:14px; background:#ffffff; border:1.5px solid #cbd5e1; border-radius:14px; padding:18px; box-shadow:0 2px 6px rgba(0,0,0,0.02);">
+      <div style="font-weight:800; color:#0f172a; font-size:14px; border-bottom:1.5px solid #e2e8f0; padding-bottom:8px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <span>🗓️ Monthly Rainfall Progression Graph (Actual vs Normal)</span>
+        <span style="font-size:11px; color:#0284c7; font-weight:700; background:#e0f2fe; padding:3px 8px; border-radius:6px;">Jan 2026 – July 2026</span>
+      </div>
+
+      <div style="display:flex; gap:12px; align-items:flex-end; justify-content:space-between; height:185px; padding-top:24px; padding-bottom:10px; overflow-x:auto;">
+  `;
+
+  monthlyData.forEach(m => {
+    const actHeight = Math.min((m.actual / maxMonthVal) * 110, 110);
+    const normHeight = Math.min((m.normal / maxMonthVal) * 110, 110);
+
+    monthlyGraphHtml += `
+      <div style="flex:1; min-width:55px; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end;">
+        <div style="font-size:9.5px; font-weight:800; color:#0f172a; text-align:center; white-space:nowrap;">
+          <span style="color:#0284c7;">${m.actual}</span> / <span style="color:#64748b;">${m.normal}</span>
+        </div>
+        <div style="display:flex; align-items:flex-end; gap:3px; height:110px;">
+          <div style="width:14px; height:${Math.max(actHeight, 4)}px; background:#0284c7; border-radius:3px 3px 0 0;" title="${m.month} Actual: ${m.actual} mm"></div>
+          <div style="width:14px; height:${Math.max(normHeight, 4)}px; background:#cbd5e1; border-radius:3px 3px 0 0;" title="${m.month} Normal: ${m.normal} mm"></div>
+        </div>
+        <div style="font-size:11.5px; font-weight:700; color:#334155; margin-top:2px;">${m.month}</div>
+      </div>
+    `;
+  });
+
+  monthlyGraphHtml += `
+      </div>
+      <div style="display:flex; justify-content:center; gap:18px; margin-top:12px; font-size:11.5px; font-weight:700;">
+        <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px; height:12px; background:#0284c7; border-radius:3px; display:inline-block;"></span> Actual Rain (mm)</span>
+        <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px; height:12px; background:#cbd5e1; border-radius:3px; display:inline-block;"></span> Normal Rain (mm)</span>
+      </div>
+    </div>
+
+    <!-- CARD 2: Seasonal & Annual Progression Graphs -->
+    <div style="margin-top:14px; background:#ffffff; border:1.5px solid #cbd5e1; border-radius:14px; padding:18px; box-shadow:0 2px 6px rgba(0,0,0,0.02);">
+      <div style="font-weight:800; color:#0f172a; font-size:14px; border-bottom:1.5px solid #e2e8f0; padding-bottom:8px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <span>🌊 Seasonal & Annual Rainfall Progression Graphs</span>
+        <span style="font-size:11px; color:#7c3aed; font-weight:700; background:#f5f3ff; padding:3px 8px; border-radius:6px;">SW, NE, Annual YTD & Pre-Monsoon</span>
+      </div>
+
+      <div style="display:flex; gap:12px; align-items:flex-end; justify-content:space-around; height:195px; padding-top:24px; padding-bottom:10px; overflow-x:auto;">
+  `;
+
+  const seasonalBars = [
+    { label: 'Pre-Monsoon', data: preData, color: '#059669', bgLight: '#ecfdf5', icon: '🌱' },
+    { label: 'SW Monsoon', data: swData, color: '#0284c7', bgLight: '#f0f9ff', icon: '🌊' },
+    { label: 'NE Monsoon', data: neData, color: '#d97706', bgLight: '#fffbe6', icon: '🍂' },
+    { label: 'Annual (YTD)', data: ytdData, color: '#7c3aed', bgLight: '#f5f3ff', icon: '📈' }
+  ];
+
+  seasonalBars.forEach(sb => {
+    const actH = Math.min((sb.data.actual / maxSeasonVal) * 110, 110);
+    const normH = Math.min((sb.data.normal / maxSeasonVal) * 110, 110);
+    const depVal = sb.data.dep;
+
+    monthlyGraphHtml += `
+      <div style="flex:1; min-width:95px; max-width:145px; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; background:${sb.bgLight}; padding:8px 6px 6px 6px; border-radius:10px; border:1.5px solid ${sb.color}35;">
+        <div style="font-size:9.5px; font-weight:800; color:#0f172a; text-align:center; white-space:nowrap;">
+          ${sb.data.actual} / ${sb.data.normal} mm
+          <div style="margin-top:2px;"><span class="badge ${sb.data.cat.badgeClass}" style="font-size:9px; padding:1px 5px;">${depVal > 0 ? '+' : ''}${depVal}%</span></div>
+        </div>
+        <div style="display:flex; align-items:flex-end; gap:5px; height:110px; margin-top:4px;">
+          <div style="width:18px; height:${Math.max(actH, 4)}px; background:${sb.color}; border-radius:4px 4px 0 0;" title="${sb.label} Actual: ${sb.data.actual} mm"></div>
+          <div style="width:18px; height:${Math.max(normH, 4)}px; background:#cbd5e1; border-radius:4px 4px 0 0;" title="${sb.label} Normal: ${sb.data.normal} mm"></div>
+        </div>
+        <div style="font-size:11px; font-weight:800; color:#1e293b; white-space:nowrap; text-align:center; margin-top:4px;">${sb.icon} ${sb.label}</div>
+      </div>
+    `;
+  });
+
+  monthlyGraphHtml += `
+      </div>
+      <div style="display:flex; justify-content:center; gap:18px; margin-top:12px; font-size:11.5px; font-weight:700;">
+        <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px; height:12px; background:#0284c7; border-radius:3px; display:inline-block;"></span> Actual Rain (mm)</span>
+        <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px; height:12px; background:#cbd5e1; border-radius:3px; display:inline-block;"></span> Normal Rain (mm)</span>
+      </div>
+    </div>
+  `;
+
+  // Taluks Graph HTML
+  let taluksGraphHtml = '';
+  if (talukRows.length > 0) {
+    const maxTalukRain = Math.max(...talukRows.map(t => Math.max(t.actual, t.normal))) || 1;
+    taluksGraphHtml = `
+      <div style="margin-top:14px; background:#ffffff; border:1.5px solid #cbd5e1; border-radius:12px; padding:16px;">
+        <div style="font-weight:800; color:#0f172a; font-size:14px; border-bottom:1.5px solid #e2e8f0; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+          <span>🏘️ Block / Taluk-Level Hydro-Climatic Performance Chart inside ${distSvgName.toUpperCase()}</span>
+          <span style="font-size:12px; color:#64748b; font-weight:600;">${talukRows.length} Taluks</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+    `;
+
+    talukRows.forEach(t => {
+      const actPct = Math.min((t.actual / maxTalukRain) * 100, 100);
+      taluksGraphHtml += `
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; color:#0f172a; margin-bottom:4px;">
+            <span>📍 ${t.taluk}</span>
+            <span>Actual: <span style="color:#0284c7;">${t.actual} mm</span> | Normal: <span style="color:#64748b;">${t.normal} mm</span> <span class="badge ${t.cat.badgeClass}" style="margin-left:6px; font-size:10.5px;">${t.cat.code} (${t.dep > 0 ? '+' : ''}${t.dep}%)</span></span>
+          </div>
+          <div style="height:14px; background:#e2e8f0; border-radius:6px; overflow:hidden; position:relative;">
+            <div style="height:100%; width:${Math.max(actPct, 2)}%; background:${t.cat.color}; border-radius:6px; transition:width 0.5s ease;"></div>
+          </div>
+        </div>
+      `;
+    });
+
+    taluksGraphHtml += `
+        </div>
+      </div>
+    `;
+  }
+
+  return monthlyGraphHtml + taluksGraphHtml;
+}
+
+const PERIOD_DATE_MAP = {
+  'sw_monsoon': 'June 1, 2026 – July 23, 2026 (Southwest Monsoon Period)',
+  'july_mtd': 'July 1, 2026 – July 23, 2026 (Month-to-Date July)',
+  'last_24h': 'Ending at 8:30 AM (Last 24 Hours IST)',
+  'last_7d': 'July 17, 2026 – July 23, 2026 (Last 7 Days Cumulative)',
+  'pre_monsoon': 'March 1, 2026 – May 31, 2026 (Pre-Monsoon Season)',
+  'ytd': 'January 1, 2026 – July 23, 2026 (Year-to-Date Cumulative)',
+  'june': 'June 1, 2026 – June 30, 2026 (Monthly June)',
+  'may': 'May 1, 2026 – May 31, 2026 (Monthly May)',
+  'apr': 'April 1, 2026 – April 30, 2026 (Monthly April)',
+  'mar': 'March 1, 2026 – March 31, 2026 (Monthly March)',
+  'feb': 'February 1, 2026 – February 28, 2026 (Monthly February)',
+  'jan': 'January 1, 2026 – January 31, 2026 (Monthly January)'
+};
+
+function updatePeriodLabelsUI() {
+  if (!PERIOD_DATES || typeof PERIOD_DATES !== 'object') return;
+  const swPill = document.getElementById('pill-sw_monsoon');
+  if (swPill && PERIOD_DATES.sw_monsoon) swPill.innerHTML = `🌊 SW Monsoon (${PERIOD_DATES.sw_monsoon})`;
+  
+  const mtdPill = document.getElementById('pill-july_mtd');
+  if (mtdPill && PERIOD_DATES.july_mtd) mtdPill.innerHTML = `📅 Month to Date (${PERIOD_DATES.july_mtd})`;
+  
+  const l7dPill = document.getElementById('pill-last_7d');
+  if (l7dPill && PERIOD_DATES.last_7d) l7dPill.innerHTML = `🗓️ Last 7 Days (${PERIOD_DATES.last_7d})`;
+  
+  const ytdPill = document.getElementById('pill-ytd');
+  if (ytdPill && PERIOD_DATES.ytd) ytdPill.innerHTML = `📈 Year to Date (${PERIOD_DATES.ytd})`;
+
+  if (PERIOD_DATES.sw_monsoon) PERIOD_DATE_MAP['sw_monsoon'] = `${PERIOD_DATES.sw_monsoon} (Southwest Monsoon Period)`;
+  if (PERIOD_DATES.july_mtd) PERIOD_DATE_MAP['july_mtd'] = `${PERIOD_DATES.july_mtd} (Month-to-Date July)`;
+  if (PERIOD_DATES.last_24h) PERIOD_DATE_MAP['last_24h'] = `${PERIOD_DATES.last_24h}`;
+  if (PERIOD_DATES.last_7d) PERIOD_DATE_MAP['last_7d'] = `${PERIOD_DATES.last_7d} (Last 7 Days Cumulative)`;
+  if (PERIOD_DATES.ytd) PERIOD_DATE_MAP['ytd'] = `${PERIOD_DATES.ytd} (Year-to-Date Cumulative)`;
+
+  const chartAsOn = document.getElementById('chart-as-on-date');
+  if (chartAsOn) chartAsOn.textContent = `As on ${PERIOD_DATES.end_date || UPDATED_DATE || '23 July 2026'}`;
+}
+
+function renderRegionalSeasonalAnalytics(regionKey) {
+  const regionsList = ['Coastal', 'NIK', 'SIK', 'Malnad'];
+  const regionNames = {
+    'Coastal': 'Coastal Karnataka',
+    'NIK': 'North Interior Karnataka (NIK)',
+    'SIK': 'South Interior Karnataka (SIK)',
+    'Malnad': 'Malnad Region'
+  };
+
+  const getRegionMetricsForPeriod = (rKey, pkey) => {
+    let totAct = 0, totNorm = 0, count = 0;
+    Object.entries(KARNATAKA_DISTRICT_SVG).forEach(([sName, info]) => {
+      if (rKey === 'ALL' || normalizeRegion(info.region) === rKey) {
+        const m = getDistrictMetrics(sName, pkey);
+        totAct += m.actual; totNorm += m.normal; count++;
+      }
+    });
+    const avgA = count > 0 ? round1(totAct / count) : 0;
+    const avgN = count > 0 ? round1(totNorm / count) : 0;
+    const dep = avgN > 0 ? round1(((avgA - avgN) / avgN) * 100) : 0;
+    const cat = (avgN > 0 || avgA > 0) ? getRainfallCategory(avgA, avgN, dep) : { name: 'Upcoming (Oct–Dec)', badgeClass: 'badge-nr', color: '#64748b' };
+    return { actual: avgA, normal: avgN, dep: dep, cat: cat, count: count };
+  };
+
+  if (regionKey !== 'ALL') {
+    // SINGLE REGION VIEW (Coastal, NIK, SIK, or Malnad)
+    const normKey = normalizeRegion(regionKey);
+    const regionTitle = regionNames[normKey] || normKey;
+
+    const swData = getRegionMetricsForPeriod(normKey, 'sw_monsoon');
+    const neData = getRegionMetricsForPeriod(normKey, 'ne_monsoon');
+    const ytdData = getRegionMetricsForPeriod(normKey, 'ytd');
+    const preData = getRegionMetricsForPeriod(normKey, 'pre_monsoon');
+
+    const maxVal = Math.max(swData.actual, swData.normal, neData.actual, neData.normal, ytdData.actual, ytdData.normal, preData.actual, preData.normal) || 1;
+
+    let distRows = [];
+    Object.entries(KARNATAKA_DISTRICT_SVG).forEach(([sName, info]) => {
+      if (normalizeRegion(info.region) === normKey) {
+        const m = getDistrictMetrics(sName, state.period);
+        distRows.push({ dist: sName, actual: m.actual, normal: m.normal, dep: m.dep, cat: m.cat });
+      }
+    });
+    distRows.sort((a,b) => b.actual - a.actual);
+    const maxDistVal = distRows[0]?.actual || 1;
+
+    let html = `
+      <!-- Seasonal & Annual Overview Cards Grid for Region -->
+      <div style="margin-top:14px; display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:10px;">
+        <!-- Pre-Monsoon Card -->
+        <div style="background:linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border:1.5px solid #059669; border-radius:12px; padding:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <span style="font-size:12px; font-weight:800; color:#047857;">🌱 PRE-MONSOON</span>
+            <span class="badge ${preData.cat.badgeClass}" style="font-size:10px;">${preData.cat.name}</span>
+          </div>
+          <div style="font-size:18px; font-weight:900; color:#059669;">${preData.actual} <span style="font-size:11px; font-weight:700; color:#475569;">/ ${preData.normal} mm</span></div>
+          <div style="font-size:10.5px; font-weight:700; color:#047857; margin-top:2px;">Dep: ${preData.dep > 0 ? '+' : ''}${preData.dep}% | March 1 – May 31</div>
+        </div>
+
+        <!-- SW Monsoon Card -->
+        <div style="background:linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border:1.5px solid #0284c7; border-radius:12px; padding:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <span style="font-size:12px; font-weight:800; color:#0369a1;">🌊 SW MONSOON</span>
+            <span class="badge ${swData.cat.badgeClass}" style="font-size:10px;">${swData.cat.name}</span>
+          </div>
+          <div style="font-size:18px; font-weight:900; color:#0284c7;">${swData.actual} <span style="font-size:11px; font-weight:700; color:#475569;">/ ${swData.normal} mm</span></div>
+          <div style="font-size:10.5px; font-weight:700; color:#0369a1; margin-top:2px;">Dep: ${swData.dep > 0 ? '+' : ''}${swData.dep}% | ${PERIOD_DATES.sw_monsoon || 'June 1 – July 23'}</div>
+        </div>
+
+        <!-- NE Monsoon Card -->
+        <div style="background:linear-gradient(135deg, #fffbe6 0%, #fef3c7 100%); border:1.5px solid #d97706; border-radius:12px; padding:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <span style="font-size:12px; font-weight:800; color:#b45309;">🍂 NE MONSOON</span>
+            <span class="badge ${neData.cat.badgeClass}" style="font-size:10px;">${neData.cat.name}</span>
+          </div>
+          <div style="font-size:18px; font-weight:900; color:#d97706;">${neData.actual} <span style="font-size:11px; font-weight:700; color:#475569;">/ ${neData.normal} mm</span></div>
+          <div style="font-size:10.5px; font-weight:700; color:#b45309; margin-top:2px;">${neData.hasData ? `Dep: ${neData.dep > 0 ? '+' : ''}${neData.dep}%` : 'Starts October 1'} | Oct 1 – Dec 31</div>
+        </div>
+
+        <!-- Annual YTD Card -->
+        <div style="background:linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border:1.5px solid #7c3aed; border-radius:12px; padding:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <span style="font-size:12px; font-weight:800; color:#6d28d9;">📈 ANNUAL (YTD)</span>
+            <span class="badge ${ytdData.cat.badgeClass}" style="font-size:10px;">${ytdData.cat.name}</span>
+          </div>
+          <div style="font-size:18px; font-weight:900; color:#7c3aed;">${ytdData.actual} <span style="font-size:11px; font-weight:700; color:#475569;">/ ${ytdData.normal} mm</span></div>
+          <div style="font-size:10.5px; font-weight:700; color:#6d28d9; margin-top:2px;">Dep: ${ytdData.dep > 0 ? '+' : ''}${ytdData.dep}% | ${PERIOD_DATES.ytd || 'Jan 1 – July 23'}</div>
+        </div>
+      </div>
+
+      <!-- Regional Dual Bar Graphs for Seasons -->
+      <div style="margin-top:14px; background:#ffffff; border:1.5px solid #cbd5e1; border-radius:14px; padding:18px; box-shadow:0 2px 6px rgba(0,0,0,0.02);">
+        <div style="font-weight:800; color:#0f172a; font-size:14px; border-bottom:1.5px solid #e2e8f0; padding-bottom:8px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <span>🗺️ Seasonal & Annual Rainfall Progression Graphs for ${regionTitle.toUpperCase()}</span>
+          <span style="font-size:11px; color:#0284c7; font-weight:700; background:#e0f2fe; padding:3px 8px; border-radius:6px;">Actual vs Normal (mm)</span>
+        </div>
+
+        <div style="display:flex; gap:12px; align-items:flex-end; justify-content:space-around; height:195px; padding-top:24px; padding-bottom:10px; overflow-x:auto;">
+    `;
+
+    const seasonalBars = [
+      { label: 'Pre-Monsoon', data: preData, color: '#059669', bgLight: '#ecfdf5', icon: '🌱' },
+      { label: 'SW Monsoon', data: swData, color: '#0284c7', bgLight: '#f0f9ff', icon: '🌊' },
+      { label: 'NE Monsoon', data: neData, color: '#d97706', bgLight: '#fffbe6', icon: '🍂' },
+      { label: 'Annual (YTD)', data: ytdData, color: '#7c3aed', bgLight: '#f5f3ff', icon: '📈' }
+    ];
+
+    seasonalBars.forEach(sb => {
+      const actH = Math.min((sb.data.actual / maxVal) * 110, 110);
+      const normH = Math.min((sb.data.normal / maxVal) * 110, 110);
+      const depVal = sb.data.dep;
+
+      html += `
+        <div style="flex:1; min-width:95px; max-width:145px; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; background:${sb.bgLight}; padding:8px 6px 6px 6px; border-radius:10px; border:1.5px solid ${sb.color}35;">
+          <div style="font-size:9.5px; font-weight:800; color:#0f172a; text-align:center; white-space:nowrap;">
+            ${sb.data.actual} / ${sb.data.normal} mm
+            <div style="margin-top:2px;"><span class="badge ${sb.data.cat.badgeClass}" style="font-size:9px; padding:1px 5px;">${depVal > 0 ? '+' : ''}${depVal}%</span></div>
+          </div>
+          <div style="display:flex; align-items:flex-end; gap:5px; height:110px; margin-top:4px;">
+            <div style="width:18px; height:${Math.max(actH, 4)}px; background:${sb.color}; border-radius:4px 4px 0 0;" title="${sb.label} Actual: ${sb.data.actual} mm"></div>
+            <div style="width:18px; height:${Math.max(normH, 4)}px; background:#cbd5e1; border-radius:4px 4px 0 0;" title="${sb.label} Normal: ${sb.data.normal} mm"></div>
+          </div>
+          <div style="font-size:11px; font-weight:800; color:#1e293b; white-space:nowrap; text-align:center; margin-top:4px;">${sb.icon} ${sb.label}</div>
+        </div>
+      `;
+    });
+
+    html += `
+        </div>
+        <div style="display:flex; justify-content:center; gap:18px; margin-top:12px; font-size:11.5px; font-weight:700;">
+          <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px; height:12px; background:#0284c7; border-radius:3px; display:inline-block;"></span> Actual Rain (mm)</span>
+          <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px; height:12px; background:#cbd5e1; border-radius:3px; display:inline-block;"></span> Normal Rain (mm)</span>
+        </div>
+      </div>
+
+      <!-- District Performance Breakdown inside this Region -->
+      <div style="margin-top:14px; background:#ffffff; border:1.5px solid #cbd5e1; border-radius:14px; padding:18px;">
+        <div style="font-weight:800; color:#0f172a; font-size:14px; border-bottom:1.5px solid #e2e8f0; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+          <span>📍 District-wise Rainfall Performance inside ${regionTitle.toUpperCase()}</span>
+          <span style="font-size:12px; color:#64748b; font-weight:600;">${distRows.length} Districts</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+    `;
+
+    distRows.forEach(d => {
+      const pct = Math.min((d.actual / maxDistVal) * 100, 100);
+      html += `
+        <div class="bar-row">
+          <div class="bar-label">${d.dist.toUpperCase()}</div>
+          <div class="bar-track" style="height:18px;">
+            <div class="bar-fill" style="width:${Math.max(pct, 2)}%; background:${d.cat.color};"></div>
+          </div>
+          <div class="bar-val">${d.actual} / ${d.normal} mm <span class="badge ${d.cat.badgeClass}" style="font-size:9.5px; margin-left:4px;">${d.dep > 0 ? '+' : ''}${d.dep}%</span></div>
+        </div>
+      `;
+    });
+
+    html += `
+        </div>
+      </div>
+    `;
+
+    return html;
+  } else {
+    // ALL REGIONS VIEW (Regionwise Comparison across Pre-Monsoon, SW Monsoon, NE Monsoon, Annual YTD)
+    const periods = [
+      { key: 'pre_monsoon', title: '🌱 Pre-Monsoon (March 1 – May 31)', color: '#059669' },
+      { key: 'sw_monsoon', title: '🌊 SW Monsoon (June 1 – July 23)', color: '#0284c7' },
+      { key: 'ne_monsoon', title: '🍂 NE Monsoon (October 1 – December 31)', color: '#d97706' },
+      { key: 'ytd', title: '📈 Annual / Year-to-Date (Jan 1 – July 23)', color: '#7c3aed' }
+    ];
+
+    let html = `
+      <div style="margin-top:14px; background:#ffffff; border:1.5px solid #cbd5e1; border-radius:14px; padding:18px; box-shadow:0 2px 6px rgba(0,0,0,0.02);">
+        <div style="font-weight:800; color:#0f172a; font-size:15px; border-bottom:1.5px solid #e2e8f0; padding-bottom:8px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <span>🗺️ Agro-Climatic Regionwise Rainfall Progression Graphs (Coastal, NIK, SIK, Malnad)</span>
+          <span style="font-size:11.5px; color:#0284c7; font-weight:700; background:#e0f2fe; padding:3px 8px; border-radius:6px;">Pre-Monsoon, SW, NE & Annual</span>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px;">
+    `;
+
+    periods.forEach(p => {
+      let regMetrics = [];
+      let maxVal = 1;
+      regionsList.forEach(rKey => {
+        const m = getRegionMetricsForPeriod(rKey, p.key);
+        if (Math.max(m.actual, m.normal) > maxVal) maxVal = Math.max(m.actual, m.normal);
+        regMetrics.push({ region: rKey, name: regionNames[rKey], data: m });
+      });
+
+      html += `
+        <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:12px; padding:14px;">
+          <div style="font-size:13px; font-weight:800; color:#0f172a; margin-bottom:10px; border-bottom:1px solid #e2e8f0; padding-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+            <span>${p.title}</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+      `;
+
+      regMetrics.forEach(rm => {
+        const pct = Math.min((rm.data.actual / maxVal) * 100, 100);
+        html += `
+          <div class="bar-row" style="margin-bottom:4px;">
+            <div class="bar-label" style="width:115px; font-size:12px; font-weight:800;">${rm.region}</div>
+            <div class="bar-track" style="height:18px;">
+              <div class="bar-fill" style="width:${Math.max(pct, 2)}%; background:${rm.data.cat.color};"></div>
+            </div>
+            <div class="bar-val" style="min-width:130px; font-size:11px;">${rm.data.actual} / ${rm.data.normal} mm <span class="badge ${rm.data.cat.badgeClass}" style="font-size:9.5px; margin-left:3px;">${rm.data.dep > 0 ? '+' : ''}${rm.data.dep}%</span></div>
+          </div>
+        `;
+      });
+
+      html += `
+          </div>
+        </div>
+      `;
+    });
+
+    html += `
+        </div>
+      </div>
+    `;
+
+    return html;
+  }
+}
+
+function updateDistrictSummaryBox() {
+  const boxDistName = document.getElementById('summary-box-dist-name');
+  const boxWarn = document.getElementById('summary-box-warn-badge');
+  const boxText = document.getElementById('summary-box-text');
+
+  const dateRangeStr = PERIOD_DATE_MAP[state.period] || 'June 1, 2026 – July 21, 2026';
+
+  if (state.selectedDistrict) {
+    const sName = state.selectedDistrict;
+    const region = normalizeRegion(KARNATAKA_DISTRICT_SVG[sName]?.region) || 'KARNATAKA';
+    const regionFull = region === 'NIK' ? 'North Interior Karnataka (NIK)' : region === 'SIK' ? 'South Interior Karnataka (SIK)' : region === 'Coastal' ? 'Coastal Karnataka' : 'Malnad Region';
+    const m = getDistrictMetrics(sName, state.period);
+
+    // Find Taluks inside district for Wettest/Driest stats
+    let talukRows = [];
+    TALUK_DATA.forEach(t => {
+      const svgMapped = EXCEL_TO_SVG_MAP[t.dist.toUpperCase()] || t.dist;
+      if (svgMapped.toLowerCase() === sName.toLowerCase()) {
+        const pData = t[state.period] || { normal: 0, actual: 0, dep: 0 };
+        const cat = getRainfallCategory(pData.actual, pData.normal, pData.dep);
+        talukRows.push({ taluk: t.taluk, normal: pData.normal, actual: pData.actual, dep: pData.dep, cat: cat });
+      }
+    });
+
+    talukRows.sort((a,b) => b.actual - a.actual);
+    const wettest = talukRows[0] || { taluk: '--', actual: 0, dep: 0 };
+    const driest = talukRows[talukRows.length - 1] || { taluk: '--', actual: 0, dep: 0 };
+
+    boxDistName.innerHTML = `📍 ${sName.toUpperCase()} DISTRICT RAINFALL HYDRO-CLIMATIC PROFILE`;
+    boxWarn.className = `badge ${m.cat.badgeClass}`;
+    boxWarn.innerHTML = `${m.cat.name}`;
+
+    const isChitradurga = sName.toUpperCase().includes('CHITRADURGA');
+    const detailedGraphsHtml = renderDistrictDetailedAnalytics(sName);
+
+    boxText.innerHTML = `
+      <div style="background:#ffffff; border:1.5px solid #cbd5e1; border-radius:14px; padding:20px; box-shadow:0 4px 16px rgba(0,0,0,0.04);">
+        <!-- Title & Date Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; border-bottom:2px solid #e2e8f0; padding-bottom:12px; margin-bottom:14px;">
+          <div>
+            <div style="font-size:20px; font-weight:900; color:#0f172a;">📍 ${sName.toUpperCase()} DISTRICT RAINFALL PROFILE</div>
+            <div style="font-size:13px; font-weight:700; color:#0284c7; margin-top:4px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <span>🗓️ DATE RANGE: <b style="color:#0f172a;">${dateRangeStr}</b></span>
+              <span style="background:#e0f2fe; color:#0369a1; padding:2px 9px; border-radius:6px; font-size:12px;">Region: ${regionFull}</span>
+            </div>
+          </div>
+          <div>
+            <span class="badge ${m.cat.badgeClass}" style="font-size:14px; padding:6px 14px;">${m.cat.name}</span>
+          </div>
+        </div>
+
+        ${isChitradurga ? `
+          <div style="background:linear-gradient(90deg, #ecfdf5 0%, #d1fae5 100%); border:1.5px solid #10b981; border-radius:10px; padding:12px 16px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+            <div>
+              <span style="font-size:13.5px; font-weight:800; color:#047857;">🌱 GKMS / AgroMet Field Unit (AMFU) Hiriyur Headquarters</span>
+              <div style="font-size:12px; color:#065f46; margin-top:2px;">Zonal Agricultural and Horticultural Research Station (ZAHRS), Hiriyur, Chitradurga District. KSNUAHS Agricultural Advisory Center.</div>
+            </div>
+            <span style="font-size:11.5px; font-weight:800; background:#047857; color:#ffffff; padding:4px 10px; border-radius:6px;">AMFU HIRIYUR</span>
+          </div>
+        ` : ''}
+
+        <!-- Mini KPI Cards -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-bottom:16px;">
+          <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; padding:12px;">
+            <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">🌧️ Actual Rain</div>
+            <div style="font-size:22px; font-weight:900; color:#0284c7;">${m.actual} mm</div>
+            <div style="font-size:11px; color:#475569; margin-top:2px;">Observed Total</div>
+          </div>
+          <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; padding:12px;">
+            <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">📏 Normal Rain</div>
+            <div style="font-size:22px; font-weight:900; color:#1e40af;">${m.normal} mm</div>
+            <div style="font-size:11px; color:#475569; margin-top:2px;">Climate Normal</div>
+          </div>
+          <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; padding:12px;">
+            <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">📉 % Departure</div>
+            <div style="font-size:22px; font-weight:900; color:${m.dep >= 0 ? '#0284c7' : '#c2410c'};">${m.dep > 0 ? '+' : ''}${m.dep} %</div>
+            <div style="font-size:11px; color:#047857; margin-top:2px; font-weight:700;">${m.cat.code} (${m.cat.name})</div>
+          </div>
+          <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; padding:12px;">
+            <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">🌊 Highest Rain Block</div>
+            <div style="font-size:16px; font-weight:900; color:#0f172a;">${wettest.taluk}</div>
+            <div style="font-size:11px; color:#0284c7; margin-top:2px; font-weight:700;">${wettest.actual} mm (${wettest.dep > 0 ? '+' : ''}${wettest.dep}%)</div>
+          </div>
+          <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; padding:12px;">
+            <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">🌵 Lowest Rain Block</div>
+            <div style="font-size:16px; font-weight:900; color:#0f172a;">${driest.taluk}</div>
+            <div style="font-size:11px; color:#c2410c; margin-top:2px; font-weight:700;">${driest.actual} mm (${driest.dep > 0 ? '+' : ''}${driest.dep}%)</div>
+          </div>
+        </div>
+
+        <!-- Executive Hydro-Climatic Summary Box -->
+        <div style="background:#f1f5f9; border:1.5px solid #cbd5e1; border-left:5px solid #0284c7; border-radius:12px; padding:16px 20px; margin-bottom:16px;">
+          <div style="font-size:13.5px; font-weight:800; color:#0f172a; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+            <span>📑 Executive Hydro-Climatic Assessment Summary</span>
+          </div>
+          <div style="font-size:13.5px; line-height:1.75; color:#334155;">
+            During <b>${dateRangeStr}</b>, <b>${sName.toUpperCase()}</b> district recorded a total cumulative actual rainfall of <b>${m.actual} mm</b> against an IMD climate normal of <b>${m.normal} mm</b>, representing <b>${m.dep > 0 ? '+' + m.dep : m.dep}% departure</b>. Consequently, the district is categorized under <span class="badge ${m.cat.badgeClass}">${m.cat.name}</span> status.
+            ${wettest && wettest.taluk !== '--' ? ` Among its administrative blocks, <b>${wettest.taluk}</b> recorded the highest rainfall performance at <b>${wettest.actual} mm</b> (${wettest.dep > 0 ? '+' : ''}${wettest.dep}% departure), whereas <b>${driest.taluk}</b> recorded the lowest total at <b>${driest.actual} mm</b> (${driest.dep > 0 ? '+' : ''}${driest.dep}% departure).` : ''}
+            ${isChitradurga ? `<br><br>🌱 <b>AgroMet Field Unit (AMFU) Hiriyur Special Note:</b> As the zonal headquarters located at ZAHRS Hiriyur under KSNUAHS, continuous micro-level rainfall monitoring is conducted here to issue timely agricultural advisories for rainfed crops, soil moisture conservation, and irrigation scheduling across Chitradurga district.` : ''}
+          </div>
+
+          <!-- 1-Line Short Status Indicator -->
+          <div style="background:${m.cat.code==='LD'||m.cat.code==='D' ? '#fef2f2' : m.cat.code==='LE'||m.cat.code==='E' ? '#f0f9ff' : '#ecfdf5'}; border:2px solid ${m.cat.code==='LD'||m.cat.code==='D' ? '#ef4444' : m.cat.code==='LE'||m.cat.code==='E' ? '#0284c7' : '#10b981'}; border-radius:10px; padding:10px 16px; margin-top:12px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+            <span style="font-size:14px; font-weight:900; color:${m.cat.code==='LD'||m.cat.code==='D' ? '#991b1b' : m.cat.code==='LE'||m.cat.code==='E' ? '#0369a1' : '#047857'};">
+              ⚡ SHORT STATUS SUMMARY: ${m.cat.code==='LE'?'LARGE EXCESS':m.cat.code==='E'?'EXCESS':m.cat.code==='N'?'NORMAL':m.cat.code==='D'?'DEFICIENT':m.cat.code==='LD'?'LARGE DEFICIENT':'NO RAIN'} (${m.dep > 0 ? '+' : ''}${m.dep}% DEPARTURE)
+            </span>
+            <span style="font-size:12.5px; font-weight:800; background:${m.cat.code==='LD'||m.cat.code==='D' ? '#991b1b' : m.cat.code==='LE'||m.cat.code==='E' ? '#0369a1' : '#047857'}; color:#ffffff; padding:4px 12px; border-radius:6px;">
+              ${m.actual} mm / ${m.normal} mm
+            </span>
+          </div>
+        </div>
+
+        <!-- Detailed Graphs -->
+        ${detailedGraphsHtml}
+      </div>
+    `;
+  } else if (state.region !== 'ALL') {
+    const rKey = normalizeRegion(state.region);
+    const regionNames = {
+      'Coastal': 'Coastal Karnataka',
+      'NIK': 'North Interior Karnataka (NIK)',
+      'SIK': 'South Interior Karnataka (SIK)',
+      'Malnad': 'Malnad Region'
+    };
+    const regionFull = regionNames[rKey] || rKey;
+
+    let regSvgDists = [];
+    for (const [sName, sInfo] of Object.entries(KARNATAKA_DISTRICT_SVG)) {
+      if (normalizeRegion(sInfo.region) === rKey) regSvgDists.push(sName);
+    }
+
+    let totAct = 0, totNorm = 0;
+    regSvgDists.forEach(sName => {
+      const m = getDistrictMetrics(sName, state.period);
+      totAct += m.actual;
+      totNorm += m.normal;
+    });
+
+    const count = regSvgDists.length;
+    const avgAct = count > 0 ? round1(totAct / count) : 0;
+    const avgNorm = count > 0 ? round1(totNorm / count) : 0;
+    const dep = avgNorm > 0 ? round1(((avgAct - avgNorm) / avgNorm) * 100) : 0;
+    const cat = getRainfallCategory(avgAct, avgNorm, dep);
+
+    boxDistName.innerHTML = `🗺️ ${regionFull.toUpperCase()} RAINFALL HYDRO-CLIMATIC PROFILE`;
+    boxWarn.className = `badge ${cat.badgeClass}`;
+    boxWarn.innerHTML = `${cat.name}`;
+
+    const regionalAnalyticsHtml = renderRegionalSeasonalAnalytics(rKey);
+
+    boxText.innerHTML = `
+      <div style="background:#ffffff; border:1.5px solid #cbd5e1; border-radius:14px; padding:18px;">
+        <div style="font-size:18px; font-weight:900; color:#0f172a; border-bottom:2px solid #e2e8f0; padding-bottom:10px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <span>🗺️ ${regionFull.toUpperCase()} REGIONAL OVERVIEW</span>
+          <span class="badge ${cat.badgeClass}">${cat.name}</span>
+        </div>
+        <div style="font-size:13px; font-weight:700; color:#0284c7; margin-bottom:12px;">
+          🗓️ DATE RANGE: <b style="color:#0f172a;">${dateRangeStr}</b>
+        </div>
+        <div style="font-size:14px; color:#0f172a; line-height:1.7;">
+          <b>Regional Summary:</b> <b>${regionFull}</b> (${count} Districts) recorded a regional average actual rainfall of 
+          <b style="color:#0284c7;">${avgAct} mm</b> vs expected climate normal of <b style="color:#1e40af;">${avgNorm} mm</b> 
+          (% Departure: <b>${dep > 0 ? '+' : ''}${dep} %</b>).
+        </div>
+        ${regionalAnalyticsHtml}
+      </div>
+    `;
+  } else {
+    boxDistName.innerHTML = `MAP & STATEWIDE OVERVIEW`;
+    boxWarn.className = `badge badge-n`;
+    boxWarn.textContent = `STATEWIDE OVERVIEW`;
+
+    const statewideRegionalHtml = renderRegionalSeasonalAnalytics('ALL');
+
+    boxText.innerHTML = `
+      <div style="background:#ffffff; border:1.5px solid #cbd5e1; border-radius:14px; padding:18px;">
+        <div style="font-size:18px; font-weight:900; color:#0f172a; border-bottom:2px solid #e2e8f0; padding-bottom:10px; margin-bottom:12px;">
+          🗺️ STATEWIDE & REGIONAL RAINFALL PERFORMANCE OVERVIEW
+        </div>
+        <div style="font-size:13.5px; color:#0f172a; line-height:1.7; margin-bottom:10px;">
+          🗓️ <b>CURRENT ACTIVE DATE RANGE:</b> <span style="color:#0284c7; font-weight:800;">${dateRangeStr}</span><br>
+          Click on any district path on the spatial map above (e.g. <b>CHITRADURGA</b>) or select a Region Filter button below (<b>Coastal</b>, <b>NIK</b>, <b>SIK</b>, <b>Malnad</b>) to view region-specific seasonal progression graphs and district breakdowns.
+        </div>
+        ${statewideRegionalHtml}
+      </div>
+    `;
+  }
+}
+
+// HYDRO-CLIMATIC ANALYTICS BAR CHARTS
+function renderAnalyticsCharts() {
+  const cWet = document.getElementById('chart-top-wettest');
+  const cDry = document.getElementById('chart-top-driest');
+  const cReg = document.getElementById('chart-regions');
+
+  const activePeriodName = PERIOD_DATE_MAP[state.period] || state.period;
+
+  const stamp = document.getElementById('analytics-date-stamp');
+  if (stamp) stamp.textContent = activePeriodName;
+
+  const c1p = document.getElementById('chart1-period');
+  if (c1p) c1p.textContent = `Period: ${activePeriodName}`;
+
+  const c2p = document.getElementById('chart2-period');
+  if (c2p) c2p.textContent = `Period: ${activePeriodName}`;
+
+  // 1. Statewide Month-wise & Seasonal Progression
+  const cMonth = document.getElementById('chart-monthwise-state');
+  if (cMonth) {
+    const monthKeys = [
+      { key: 'jan', label: 'January' },
+      { key: 'feb', label: 'February' },
+      { key: 'mar', label: 'March' },
+      { key: 'apr', label: 'April' },
+      { key: 'may', label: 'May' },
+      { key: 'june', label: 'June' },
+      { key: 'july_mtd', label: 'July (MTD)' }
+    ];
+    let htmlMonth = '';
+    monthKeys.forEach(mObj => {
+      let totAct = 0, totNorm = 0, c = 0;
+      Object.keys(KARNATAKA_DISTRICT_SVG).forEach(sName => {
+        const m = getDistrictMetrics(sName, mObj.key);
+        totAct += m.actual; totNorm += m.normal; c++;
+      });
+      const avgA = c > 0 ? round1(totAct / c) : 0;
+      const avgN = c > 0 ? round1(totNorm / c) : 0;
+      const dep = avgN > 0 ? round1(((avgA - avgN) / avgN) * 100) : 0;
+      const cat = getRainfallCategory(avgA, avgN, dep);
+      
+      htmlMonth += `
+        <div class="bar-row" style="margin-bottom:8px;">
+          <div class="bar-label" style="width:110px; font-weight:800;">${mObj.label.toUpperCase()}</div>
+          <div class="bar-track" style="height:18px;">
+            <div class="bar-fill" style="width:${Math.min((avgA / 400) * 100, 100)}%; background:${cat.color};"></div>
+          </div>
+          <div class="bar-val" style="width:140px; font-size:11.5px;">${avgA} / ${avgN} mm <span class="badge ${cat.badgeClass}" style="font-size:10px; margin-left:4px;">${dep > 0 ? '+' : ''}${dep}%</span></div>
+        </div>
+      `;
+    });
+
+    // Seasonal & Annual Statewide Summary Rows
+    htmlMonth += `
+      <div style="font-size:11px; font-weight:800; color:#475569; margin:12px 0 8px 0; border-top:1.5px dashed #cbd5e1; padding-top:8px; text-transform:uppercase;">
+        🌊 Seasonal & Annual Statewide Progression Totals
+      </div>
+    `;
+
+    const seasonalKeys = [
+      { key: 'sw_monsoon', label: '🌊 SW Monsoon', date: PERIOD_DATES.sw_monsoon || 'June 1 – July 23' },
+      { key: 'ne_monsoon', label: '🍂 NE Monsoon', date: 'Oct 1 – Dec 31' },
+      { key: 'ytd', label: '📈 Annual (YTD)', date: PERIOD_DATES.ytd || 'Jan 1 – July 23' },
+      { key: 'pre_monsoon', label: '🌱 Pre-Monsoon', date: 'March 1 – May 31' }
+    ];
+
+    seasonalKeys.forEach(sObj => {
+      let totAct = 0, totNorm = 0, c = 0;
+      Object.keys(KARNATAKA_DISTRICT_SVG).forEach(sName => {
+        const m = getDistrictMetrics(sName, sObj.key);
+        totAct += m.actual; totNorm += m.normal; c++;
+      });
+      const avgA = c > 0 ? round1(totAct / c) : 0;
+      const avgN = c > 0 ? round1(totNorm / c) : 0;
+      const dep = avgN > 0 ? round1(((avgA - avgN) / avgN) * 100) : 0;
+      const cat = (avgN > 0 || avgA > 0) ? getRainfallCategory(avgA, avgN, dep) : { name: 'Upcoming', badgeClass: 'badge-nr', color: '#64748b' };
+      
+      htmlMonth += `
+        <div class="bar-row" style="margin-bottom:6px; background:#f8fafc; padding:3px 6px; border-radius:6px; border:1px solid #cbd5e1;">
+          <div class="bar-label" style="width:130px; font-weight:800; font-size:11.5px;">${sObj.label}</div>
+          <div class="bar-track" style="height:18px;">
+            <div class="bar-fill" style="width:${Math.min((avgA / 800) * 100, 100)}%; background:${cat.color};"></div>
+          </div>
+          <div class="bar-val" style="width:140px; font-size:11.5px;">${avgA} / ${avgN} mm <span class="badge ${cat.badgeClass}" style="font-size:10px; margin-left:4px;">${dep > 0 ? '+' : ''}${dep}%</span></div>
+        </div>
+      `;
+    });
+
+    cMonth.innerHTML = htmlMonth;
+  }
+
+  // 2. Day-wise & Period Comparison (24H, 7D, July MTD, SW Monsoon, NE Monsoon, YTD)
+  const cPeriod = document.getElementById('chart-period-comparison');
+  if (cPeriod) {
+    const periodList = [
+      { key: 'last_24h', label: 'Daily (Last 24 Hours)', date: PERIOD_DATES.last_24h || 'Last 24 Hours' },
+      { key: 'last_7d', label: 'Weekly (Last 7 Days)', date: PERIOD_DATES.last_7d || 'Last 7 Days' },
+      { key: 'july_mtd', label: 'Month-to-Date (July)', date: PERIOD_DATES.july_mtd || 'July 1 – July 23' },
+      { key: 'sw_monsoon', label: 'SW Monsoon Season', date: PERIOD_DATES.sw_monsoon || 'June 1 – July 23' },
+      { key: 'ne_monsoon', label: 'NE Monsoon Season', date: 'October 1 – December 31' },
+      { key: 'pre_monsoon', label: 'Pre-Monsoon Season', date: 'March 1 – May 31, 2026' },
+      { key: 'ytd', label: 'Annual / Year-to-Date', date: PERIOD_DATES.ytd || 'Jan 1 – July 23' }
+    ];
+    let htmlP = '';
+    periodList.forEach(pObj => {
+      let totAct = 0, totNorm = 0, c = 0;
+      Object.keys(KARNATAKA_DISTRICT_SVG).forEach(sName => {
+        const m = getDistrictMetrics(sName, pObj.key);
+        totAct += m.actual; totNorm += m.normal; c++;
+      });
+      const avgA = c > 0 ? round1(totAct / c) : 0;
+      const avgN = c > 0 ? round1(totNorm / c) : 0;
+      const dep = avgN > 0 ? round1(((avgA - avgN) / avgN) * 100) : 0;
+      const cat = getRainfallCategory(avgA, avgN, dep);
+      
+      htmlP += `
+        <div class="bar-row" style="margin-bottom:10px;">
+          <div class="bar-label" style="width:175px; font-size:12px;"><b>${pObj.label}</b><br><span style="font-size:10px; color:#64748b;">${pObj.date}</span></div>
+          <div class="bar-track" style="height:20px;">
+            <div class="bar-fill" style="width:${Math.min((avgA / 600) * 100, 100)}%; background:${cat.color};"></div>
+          </div>
+          <div class="bar-val" style="width:140px; font-size:11.5px;">${avgA} / ${avgN} mm <span class="badge ${cat.badgeClass}" style="font-size:10px; margin-left:4px;">${dep > 0 ? '+' : ''}${dep}%</span></div>
+        </div>
+      `;
+    });
+    cPeriod.innerHTML = htmlP;
+  }
+
+  if (!cWet || !cDry || !cReg) return;
+
+  let list = [];
+  Object.keys(KARNATAKA_DISTRICT_SVG).forEach(sName => {
+    const m = getDistrictMetrics(sName, state.period);
+    list.push({ dist: sName, actual: m.actual, normal: m.normal, dep: m.dep, cat: m.cat });
+  });
+
+  // Top wettest
+  const wettest = [...list].sort((a,b) => b.actual - a.actual).slice(0, 8);
+  const maxRain = wettest[0]?.actual || 1;
+
+  let htmlWet = '';
+  wettest.forEach(d => {
+    const pct = Math.min((d.actual / maxRain) * 100, 100);
+    htmlWet += `
+      <div class="bar-row">
+        <div class="bar-label">${d.dist.toUpperCase()}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${pct}%; background:#0284c7;"></div>
+        </div>
+        <div class="bar-val">${d.actual} mm</div>
+      </div>
+    `;
+  });
+  cWet.innerHTML = htmlWet;
+
+  // Top driest
+  const driest = [...list].sort((a,b) => a.actual - b.actual).slice(0, 8);
+  const maxDry = Math.max(...driest.map(d=>d.actual)) || 1;
+
+  let htmlDry = '';
+  driest.forEach(d => {
+    const pct = Math.min((d.actual / (maxDry * 1.5)) * 100, 100);
+    htmlDry += `
+      <div class="bar-row">
+        <div class="bar-label">${d.dist.toUpperCase()}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${pct}%; background:#c2410c;"></div>
+        </div>
+        <div class="bar-val">${d.actual} mm</div>
+      </div>
+    `;
+  });
+  cDry.innerHTML = htmlDry;
+
+  // Regions Chart
+  const regions = ['Coastal', 'NIK', 'SIK', 'Malnad'];
+  const seasonalPeriods = [
+    { key: 'sw_monsoon', name: '🌊 SW Monsoon' },
+    { key: 'ne_monsoon', name: '🍂 NE Monsoon' },
+    { key: 'pre_monsoon', name: '🌱 Pre-Monsoon' },
+    { key: 'ytd', name: '📈 Annual YTD' }
+  ];
+
+  let htmlReg = `
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:14px;">
+  `;
+
+  seasonalPeriods.forEach(p => {
+    htmlReg += `
+      <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:12px;">
+        <div style="font-size:12px; font-weight:800; color:#0f172a; margin-bottom:8px; border-bottom:1px solid #e2e8f0; padding-bottom:4px;">
+          ${p.name} Regionwise Rainfall
+        </div>
+    `;
+
+    regions.forEach(rKey => {
+      let totAct = 0, totNorm = 0, count = 0;
+      Object.entries(KARNATAKA_DISTRICT_SVG).forEach(([sName, info]) => {
+        if (normalizeRegion(info.region) === rKey) {
+          const m = getDistrictMetrics(sName, p.key);
+          totAct += m.actual; totNorm += m.normal; count++;
+        }
+      });
+      const avgA = count > 0 ? round1(totAct / count) : 0;
+      const avgN = count > 0 ? round1(totNorm / count) : 0;
+      const dep = avgN > 0 ? round1(((avgA - avgN) / avgN) * 100) : 0;
+      const cat = (avgN > 0 || avgA > 0) ? getRainfallCategory(avgA, avgN, dep) : { name: 'Upcoming', badgeClass: 'badge-nr', color: '#64748b' };
+
+      htmlReg += `
+        <div class="bar-row" style="margin-bottom:6px;">
+          <div class="bar-label" style="width:105px; font-weight:800; font-size:11.5px;">${rKey}</div>
+          <div class="bar-track" style="height:16px;">
+            <div class="bar-fill" style="width:${Math.min((avgA / 800) * 100, 100)}%; background:${cat.color};"></div>
+          </div>
+          <div class="bar-val" style="min-width:130px; font-size:11px;">${avgA} / ${avgN} mm <span class="badge ${cat.badgeClass}" style="font-size:9.5px; margin-left:3px;">${dep > 0 ? '+' : ''}${dep}%</span></div>
+        </div>
+      `;
+    });
+
+    htmlReg += `</div>`;
+  });
+
+  htmlReg += `</div>`;
+  cReg.innerHTML = htmlReg;
+}
+
+// DATA TABLE ENGINE
+function setTableView(view) {
+  state.tableView = view;
+  document.getElementById('view-taluk-btn').classList.toggle('active', view === 'taluk');
+  document.getElementById('view-district-btn').classList.toggle('active', view === 'district');
+  renderTable();
+}
+
+function renderTable() {
+  const headRow = document.getElementById('table-head-row');
+  const body = document.getElementById('table-body');
+  const searchQ = (document.getElementById('table-search').value || '').toLowerCase().trim();
+
+  headRow.innerHTML = ''; body.innerHTML = '';
+
+  if (state.tableView === 'taluk') {
+    headRow.innerHTML = `
+      <th onclick="sortTable('dist')">District Name</th>
+      <th onclick="sortTable('taluk')">Taluk / Block</th>
+      <th onclick="sortTable('normal')">Normal Rain (mm)</th>
+      <th onclick="sortTable('actual')">Actual Rain (mm)</th>
+      <th onclick="sortTable('dep')">% Departure (%DEP)</th>
+      <th>IMD Status Category</th>
+    `;
+
+    let rows = [];
+    TALUK_DATA.forEach(t => {
+      const svgMapped = EXCEL_TO_SVG_MAP[t.dist.toUpperCase()] || t.dist;
+      const tReg = normalizeRegion(t.region || KARNATAKA_DISTRICT_SVG[svgMapped]?.region);
+
+      // Region Filter
+      if (state.region !== 'ALL' && tReg !== normalizeRegion(state.region)) return;
+
+      // Selected District Filter
+      if (state.selectedDistrict && svgMapped.toLowerCase() !== state.selectedDistrict.toLowerCase()) return;
+
+      // Search Query Filter
+      if (searchQ && !t.dist.toLowerCase().includes(searchQ) && !t.taluk.toLowerCase().includes(searchQ)) return;
+
+      const pData = t[state.period] || { normal: 0, actual: 0, dep: 0 };
+      const cat = getRainfallCategory(pData.actual, pData.normal, pData.dep);
+      rows.push({ dist: t.dist, taluk: t.taluk, normal: pData.normal, actual: pData.actual, dep: pData.dep, cat: cat });
+    });
+
+    rows.sort((a,b) => (state.sortAsc ? (a[state.sortCol] > b[state.sortCol] ? 1 : -1) : (a[state.sortCol] < b[state.sortCol] ? 1 : -1)));
+
+    const subtitle = document.getElementById('table-subtitle');
+    const pName = PERIOD_DATE_MAP[state.period] || state.period;
+    if (subtitle) subtitle.textContent = `(${rows.length} Taluks displayed | Active Period: ${pName})`;
+
+    rows.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight:700;">${r.dist.toUpperCase()}</td>
+        <td style="font-weight:600;">${r.taluk}</td>
+        <td>${r.normal} mm</td>
+        <td style="font-weight:700;">${r.actual} mm</td>
+        <td style="font-weight:800; color:${r.dep >= 0 ? '#0284c7' : '#c2410c'};">${r.dep > 0 ? '+' : ''}${r.dep} %</td>
+        <td><span class="badge ${r.cat.badgeClass}">${r.cat.name}</span></td>
+      `;
+      body.appendChild(tr);
+    });
+
+  } else {
+    headRow.innerHTML = `
+      <th onclick="sortTable('dist')">District Name</th>
+      <th onclick="sortTable('normal')">Normal Rain (mm)</th>
+      <th onclick="sortTable('actual')">Actual Rain (mm)</th>
+      <th onclick="sortTable('dep')">% Departure (%DEP)</th>
+      <th>IMD Status Category</th>
+    `;
+
+    let rows = [];
+    for (const sName of Object.keys(KARNATAKA_DISTRICT_SVG)) {
+      const dReg = normalizeRegion(KARNATAKA_DISTRICT_SVG[sName]?.region);
+
+      // Region Filter
+      if (state.region !== 'ALL' && dReg !== normalizeRegion(state.region)) continue;
+
+      // Selected District Filter
+      if (state.selectedDistrict && sName.toLowerCase() !== state.selectedDistrict.toLowerCase()) continue;
+
+      // Search Filter
+      if (searchQ && !sName.toLowerCase().includes(searchQ)) continue;
+
+      const m = getDistrictMetrics(sName, state.period);
+      rows.push({ dist: sName, normal: m.normal, actual: m.actual, dep: m.dep, cat: m.cat });
+    }
+
+    rows.sort((a,b) => (state.sortAsc ? (a[state.sortCol] > b[state.sortCol] ? 1 : -1) : (a[state.sortCol] < b[state.sortCol] ? 1 : -1)));
+
+    const subtitle = document.getElementById('table-subtitle');
+    const pName = PERIOD_DATE_MAP[state.period] || state.period;
+    if (subtitle) subtitle.textContent = `(${rows.length} Districts displayed | Active Period: ${pName})`;
+
+    rows.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight:800;">${r.dist.toUpperCase()}</td>
+        <td>${r.normal} mm</td>
+        <td style="font-weight:700;">${r.actual} mm</td>
+        <td style="font-weight:800; color:${r.dep >= 0 ? '#0284c7' : '#c2410c'};">${r.dep > 0 ? '+' : ''}${r.dep} %</td>
+        <td><span class="badge ${r.cat.badgeClass}">${r.cat.name}</span></td>
+      `;
+      body.appendChild(tr);
+    });
+  }
+}
+
+function sortTable(col) {
+  state.sortAsc = (state.sortCol === col) ? !state.sortAsc : false;
+  state.sortCol = col;
+  renderTable();
+}
+
+function resetAllFilters() {
+  state.selectedDistrict = null; state.region = 'ALL'; state.metric = 'category'; state.period = 'sw_monsoon';
+  updateAll();
+}
+
+function exportTableToCSV() {
+  let csv = [['District', 'Taluk', 'Period', 'Normal_mm', 'Actual_mm', 'Percent_Departure', 'Category'].join(',')];
+  TALUK_DATA.forEach(t => {
+    const p = t[state.period] || { normal: 0, actual: 0, dep: 0 };
+    const cat = getRainfallCategory(p.actual, p.normal, p.dep);
+    csv.push([`"${t.dist}"`, `"${t.taluk}"`, `"${state.period}"`, p.normal, p.actual, p.dep, `"${cat.name}"`].join(','));
+  });
+  const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Karnataka_Rainfall_Status_${state.period}.csv`; a.click();
+}
+
+const PERIOD_KEYS_LIST = [
+  'jan', 'feb', 'jan_feb', 'mar', 'apr', 'may', 'pre_monsoon',
+  'june', 'last_24h', 'last_7d', 'july_mtd', 'sw_monsoon', 'ytd'
+];
+
+function parseUploadedExcel(arrayBuffer) {
+  const wb = XLSX.read(arrayBuffer, { type: 'array' });
+  if (!wb.Sheets['District'] || !wb.Sheets['Taluk']) {
+    throw new Error("Missing 'District' or 'Taluk' sheets in the Excel report.");
+  }
+
+  const distRows = XLSX.utils.sheet_to_json(wb.Sheets['District'], { header: 1, defval: '' });
+  const districtsData = {};
+
+  // Extract updated date from header rows if present
+  let dateMatch = null;
+  for (let r = 0; r < Math.min(6, distRows.length); r++) {
+    const rowStr = (distRows[r] || []).join(' ');
+    const m = rowStr.match(/As on\s+([0-9]{1,2}[\-/.\s]+[0-9]{1,2}[\-/.\s]+[0-9]{2,4}|\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+\s*[\-–]?\s*\d{4})/i);
+    if (m) { dateMatch = m[1].trim(); break; }
+  }
+  if (dateMatch) {
+    UPDATED_DATE = dateMatch;
+    const el = document.getElementById('updated-data-date-val');
+    if (el) el.textContent = UPDATED_DATE;
+    PERIOD_DATES = {
+      sw_monsoon: `June 1 – ${dateMatch}`,
+      july_mtd: `July 1 – ${dateMatch}`,
+      last_7d: `Last 7 Days (${dateMatch})`,
+      last_24h: `Ending 8:30 AM of ${dateMatch}`,
+      ytd: `Jan 1 – ${dateMatch}`,
+      end_date: dateMatch
+    };
+    updatePeriodLabelsUI();
+  }
+
+  for (let idx = 5; idx < distRows.length; idx++) {
+    const row = distRows[idx];
+    if (!row || row.length < 7) continue;
+    const slNo = String(row[0] || '').trim();
+    const distName = String(row[6] || '').trim();
+    if (!distName || !/^\d+$/.test(slNo)) continue;
+
+    const distEntry = {
+      slNo: parseInt(slNo, 10),
+      code: String(row[1] || '').trim(),
+      region: String(row[2] || '').trim(),
+      division: String(row[5] || '').trim()
+    };
+
+    let colOffset = 7;
+    for (const pkey of PERIOD_KEYS_LIST) {
+      const norm = round1(parseFloat(row[colOffset]) || 0);
+      const act = round1(parseFloat(row[colOffset + 1]) || 0);
+      const dep = round1(parseFloat(row[colOffset + 2]) || 0);
+      distEntry[pkey] = { normal: norm, actual: act, dep: dep };
+      colOffset += 3;
+    }
+    districtsData[distName] = distEntry;
+  }
+
+  const talukRows = XLSX.utils.sheet_to_json(wb.Sheets['Taluk'], { header: 1, defval: '' });
+  const taluksData = [];
+
+  for (let idx = 4; idx < talukRows.length; idx++) {
+    const row = talukRows[idx];
+    if (!row || row.length < 10) continue;
+    const distName = String(row[8] || '').trim();
+    const talukName = String(row[9] || '').trim();
+    if (!distName || !talukName || talukName.toLowerCase().startsWith('total')) continue;
+
+    const talukEntry = {
+      dist: distName,
+      taluk: talukName,
+      region: String(row[4] || '').trim(),
+      division: String(row[7] || '').trim()
+    };
+
+    let colOffset = 11;
+    for (const pkey of PERIOD_KEYS_LIST) {
+      const norm = round1(parseFloat(row[colOffset]) || 0);
+      const act = round1(parseFloat(row[colOffset + 1]) || 0);
+      const dep = round1(parseFloat(row[colOffset + 2]) || 0);
+      talukEntry[pkey] = { normal: norm, actual: act, dep: dep };
+      colOffset += 3;
+    }
+    taluksData.push(talukEntry);
+  }
+
+  return { districts: districtsData, taluks: taluksData };
+}
+
+function initFileUpload() {
+  const input = document.getElementById('excel-file-input');
+  if (!input) return;
+  input.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const parsed = parseUploadedExcel(new Uint8Array(evt.target.result));
+        const distCount = Object.keys(parsed.districts).length;
+        const talukCount = parsed.taluks.length;
+
+        if (distCount === 0 || talukCount === 0) {
+          throw new Error('No valid District or Taluk rows found.');
+        }
+
+        DISTRICT_DATA = parsed.districts;
+        TALUK_DATA = parsed.taluks;
+
+        updateAll();
+        alert(`✅ Successfully parsed and loaded ${distCount} Districts & ${talukCount} Taluks from "${file.name}"!`);
+      } catch (err) {
+        alert('❌ Error parsing Excel report: ' + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+</script>
+</body>
+</html>
