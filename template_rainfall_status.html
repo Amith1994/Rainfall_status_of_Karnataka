@@ -1915,47 +1915,44 @@ function renderRegionalSeasonalAnalytics(regionKey) {
       });
 
       let cardHtml = `
-        <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:12px; padding:16px; flex:1; min-width:320px;">
-          <div style="font-size:13.5px; font-weight:800; color:#0f172a; margin-bottom:12px; border-bottom:1.5px solid #cbd5e1; padding-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:14px; padding:18px; flex:1; min-width:320px; box-shadow:0 2px 6px rgba(0,0,0,0.02);">
+          <!-- Card Title Header -->
+          <div style="font-size:14px; font-weight:800; color:#0f172a; margin-bottom:14px; border-bottom:2px solid #cbd5e1; padding-bottom:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
             <span>${p.title}</span>
+            <span style="font-size:11px; font-weight:700; color:#475569; background:#ffffff; padding:2px 8px; border-radius:6px; border:1px solid #cbd5e1;">Actual vs Normal (mm)</span>
           </div>
 
-          <!-- Dual Vertical Bar Charts per Region for this Period -->
-          <div style="display:flex; justify-content:space-around; align-items:flex-end; height:145px; padding-top:16px; padding-bottom:8px; border-bottom:1px solid #e2e8f0; margin-bottom:12px;">
+          <div style="display:flex; flex-direction:column; gap:10px;">
       `;
 
       regMetrics.forEach(rm => {
-        const actH = Math.min((rm.data.actual / maxVal) * 90, 90);
-        const normH = Math.min((rm.data.normal / maxVal) * 90, 90);
+        const actPct = Math.min((rm.data.actual / maxVal) * 100, 100);
+        const normPct = Math.min((rm.data.normal / maxVal) * 100, 100);
 
         cardHtml += `
-          <div style="display:flex; flex-direction:column; align-items:center; gap:3px; height:100%; justify-content:flex-end;">
-            <div style="font-size:9.5px; font-weight:800; color:#0f172a; white-space:nowrap;">${rm.data.actual} / ${rm.data.normal}</div>
-            <div style="display:flex; align-items:flex-end; gap:4px; height:90px; margin-top:2px;">
-              <div style="width:16px; height:${Math.max(actH, 4)}px; background:${p.color}; border-radius:3px 3px 0 0;" title="${rm.region} Actual: ${rm.data.actual} mm"></div>
-              <div style="width:16px; height:${Math.max(normH, 4)}px; background:#cbd5e1; border-radius:3px 3px 0 0;" title="${rm.region} Normal: ${rm.data.normal} mm"></div>
+          <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:10px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.01);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="font-size:12px; font-weight:900; color:#0f172a;">${rm.name.toUpperCase()}</span>
+              <span class="badge ${rm.data.cat.badgeClass}" style="font-size:9.5px; padding:2px 7px;">${rm.data.dep > 0 ? '+' : ''}${rm.data.dep}% (${rm.data.cat.name})</span>
             </div>
-            <div style="font-size:10.5px; font-weight:800; color:#1e293b; margin-top:4px;">${rm.region}</div>
-          </div>
-        `;
-      });
-
-      cardHtml += `
-          </div>
-
-          <!-- Horizontal Departure Rows -->
-          <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
-      `;
-
-      regMetrics.forEach(rm => {
-        const pct = Math.min((rm.data.actual / maxVal) * 100, 100);
-        cardHtml += `
-          <div class="bar-row" style="margin-bottom:2px;">
-            <div class="bar-label" style="width:105px; font-size:11.5px; font-weight:800; flex-shrink:0;">${rm.region}</div>
-            <div class="bar-track" style="height:18px;">
-              <div class="bar-fill" style="width:${Math.max(pct, 2)}%; background:${rm.data.cat.color};"></div>
+            
+            <!-- Actual Rain Bar -->
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+              <span style="font-size:10.5px; font-weight:700; color:#0369a1; width:50px; flex-shrink:0;">Actual</span>
+              <div style="flex:1; background:#f1f5f9; height:11px; border-radius:4px; overflow:hidden;">
+                <div style="width:${Math.max(actPct, 1)}%; height:100%; background:${p.color}; border-radius:4px;"></div>
+              </div>
+              <span style="font-size:11px; font-weight:800; color:#0f172a; width:75px; text-align:right; flex-shrink:0;">${rm.data.actual} mm</span>
             </div>
-            <div class="bar-val" style="min-width:135px; font-size:11px; flex-shrink:0; white-space:nowrap;">${rm.data.actual} / ${rm.data.normal} mm <span class="badge ${rm.data.cat.badgeClass}" style="font-size:9.5px; margin-left:3px;">${rm.data.dep > 0 ? '+' : ''}${rm.data.dep}%</span></div>
+
+            <!-- Normal Rain Bar -->
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:10.5px; font-weight:700; color:#64748b; width:50px; flex-shrink:0;">Normal</span>
+              <div style="flex:1; background:#f1f5f9; height:11px; border-radius:4px; overflow:hidden;">
+                <div style="width:${Math.max(normPct, 1)}%; height:100%; background:#94a3b8; border-radius:4px;"></div>
+              </div>
+              <span style="font-size:11px; font-weight:800; color:#475569; width:75px; text-align:right; flex-shrink:0;">${rm.data.normal} mm</span>
+            </div>
           </div>
         `;
       });
