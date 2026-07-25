@@ -1,12 +1,12 @@
 {
-  "name": "GKMS AgroMet Karnataka Weather Forecast",
-  "short_name": "GKMS Karnataka",
-  "description": "Block-level 5-day Weather Forecast for Karnataka Districts",
-  "start_url": "1st_updated.html",
+  "name": "GKMS AgroMet Karnataka Weather Forecast & Rainfall Status",
+  "short_name": "Karnataka Rainfall",
+  "description": "District & Taluk Rainfall Performance Analytics for Karnataka",
+  "start_url": "index.html",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "background_color": "#FFF8F0",
-  "theme_color": "#C0496A",
+  "orientation": "any",
+  "background_color": "#f1f5f9",
+  "theme_color": "#0f172a",
   "icons": [
     {
       "src": "assets/icon-192.png",

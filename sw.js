@@ -1,19 +1,27 @@
-const CACHE_NAME = 'gkms-karnataka-v2';
+const CACHE_NAME = 'gkms-karnataka-v3';
 const STATIC_ASSETS = [
     './',
-    '1st_updated.html',
     'index.html',
+    'rainfall_status.html',
+    'data_embedded.json',
+    'karnataka_svg.js',
+    'manifest.json',
     'assets/icon.png',
     'assets/icon.ico',
-    'manifest.json'
+    'assets/icon-192.png',
+    'assets/icon-512.png',
+    'assets/logo_imd.png',
+    'assets/logo_ksnuahs.png'
 ];
 
-// Install Event
+// Install Event - Resilient Caching
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
             console.log('[Service Worker] Pre-caching static assets');
-            return cache.addAll(STATIC_ASSETS);
+            return Promise.allSettled(
+                STATIC_ASSETS.map(asset => cache.add(asset).catch(err => console.warn('[SW] Soft-fail cache:', asset, err)))
+            );
         }).then(() => self.skipWaiting())
     );
 });
