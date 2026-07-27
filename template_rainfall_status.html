@@ -494,14 +494,36 @@
   }
 
   .district-label {
-    font-size: 11.5px;
-    font-weight: 700;
-    fill: #ffffff !important;
     text-anchor: middle;
     pointer-events: none;
+    font-family: var(--font-primary);
+  }
+  .district-label.dimmed {
+    opacity: 0.12 !important;
+  }
+  .district-label .lbl-name {
+    font-size: 9.5px;
+    font-weight: 900;
+    fill: #ffffff !important;
     paint-order: stroke fill;
     stroke: #090d16 !important;
-    stroke-width: 4px !important;
+    stroke-width: 3.5px !important;
+    letter-spacing: 0.2px;
+  }
+  .district-label .lbl-vals {
+    font-size: 7.5px;
+    font-weight: 700;
+    fill: #f1f5f9 !important;
+    paint-order: stroke fill;
+    stroke: #090d16 !important;
+    stroke-width: 3px !important;
+  }
+  .district-label .lbl-status {
+    font-size: 7.5px;
+    font-weight: 900;
+    paint-order: stroke fill;
+    stroke: #090d16 !important;
+    stroke-width: 3px !important;
   }
 
   /* LEGEND */
@@ -1244,6 +1266,34 @@ function getShortName(name) {
   return (map[name] || name).toUpperCase();
 }
 
+const DISTRICT_LABEL_OFFSETS = {
+  'Bangalore urban': { dx: 18, dy: 6 },
+  'Bangalore rural': { dx: -18, dy: -6 },
+  'Ramanagara': { dx: -12, dy: 12 }
+};
+
+function getStatusTextColor(code) {
+  switch (code) {
+    case 'LE': return '#60a5fa'; // Bright Cyan-Blue
+    case 'E':  return '#38bdf8'; // Sky Blue
+    case 'N':  return '#34d399'; // Bright Emerald Green
+    case 'D':  return '#fbbf24'; // Bright Gold / Yellow
+    case 'LD': return '#f87171'; // Bright Red
+    default:   return '#cbd5e1'; // Light Slate Gray
+  }
+}
+
+function getStatusShortName(code) {
+  switch (code) {
+    case 'LE': return 'LARGE EXCESS';
+    case 'E':  return 'EXCESS';
+    case 'N':  return 'NORMAL';
+    case 'D':  return 'DEFICIENT';
+    case 'LD': return 'L.DEFICIENT';
+    default:   return 'NO RAIN';
+  }
+}
+
 function getRainfallCategory(actual, normal, dep) {
   if (actual === 0 && normal > 0) return { code: 'NR', name: 'No Rain', color: '#475569', badgeClass: 'badge-nr' };
   if (dep >= 60) return { code: 'LE', name: 'Large Excess (+60% & above)', color: '#2563eb', badgeClass: 'badge-le' };
@@ -1390,6 +1440,30 @@ function updateMapColors() {
     }
 
     lbl.classList.toggle('selected', state.selectedDistrict === svgName);
+
+    // Update multiline text on map (Actual vs Normal, % Departure, and Status with colour code)
+    const distSvgObj = KARNATAKA_DISTRICT_SVG[svgName];
+    if (distSvgObj && distSvgObj.centroid) {
+      const offset = DISTRICT_LABEL_OFFSETS[svgName] || { dx: 0, dy: 0 };
+      const cx = distSvgObj.centroid[0] + offset.dx;
+      const cy = distSvgObj.centroid[1] + offset.dy;
+      const m = getDistrictMetrics(svgName, state.period);
+      const shortName = getShortName(svgName);
+      const actNormText = `${m.actual} / ${m.normal} mm`;
+      const depText = `${m.dep > 0 ? '+' : ''}${m.dep}%`;
+      const statusText = getStatusShortName(m.cat.code);
+      const statusColor = getStatusTextColor(m.cat.code);
+
+      lbl.setAttribute('x', cx);
+      lbl.setAttribute('y', cy);
+
+      lbl.innerHTML = `
+        <tspan x="${cx}" dy="-10" class="lbl-name">${shortName}</tspan>
+        <tspan x="${cx}" dy="10" class="lbl-vals">${actNormText}</tspan>
+        <tspan x="${cx}" dy="10" class="lbl-status" style="fill: ${statusColor} !important;">${depText} ${statusText}</tspan>
+      `;
+    }
+
     if (labelGroup) labelGroup.appendChild(lbl);
   });
 
