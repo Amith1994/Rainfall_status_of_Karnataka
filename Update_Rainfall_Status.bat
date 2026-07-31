@@ -16,4 +16,4 @@ echo   [SUCCESS] Live Dashboard Updated on GitHub Pages!
 echo   [LIVE URL] https://amith1994.github.io/Rainfall_status_of_Karnataka/
 echo ============================================================
 echo.
-timeout /t 10
+pause

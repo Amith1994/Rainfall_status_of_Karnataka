@@ -239,21 +239,28 @@ def sync_to_github(base_dir, updated_date):
     try:
         subprocess.run(["git", "add", "."], cwd=base_dir, check=True)
         status = subprocess.run(["git", "status", "--porcelain"], cwd=base_dir, capture_output=True, text=True)
-        if not status.stdout.strip():
+        has_changes = bool(status.stdout.strip())
+        
+        if not has_changes:
             print("[INFO] GitHub repository is already up-to-date! No local changes to commit.")
         else:
             commit_msg = f"Auto-update rainfall status data - {updated_date} ({datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')})"
             subprocess.run(["git", "commit", "-m", commit_msg], cwd=base_dir, check=True)
             print(f"[SUCCESS] Committed changes: '{commit_msg}'")
         
-        print("[INFO] Pushing changes to GitHub (origin/main)...")
-        push_res = subprocess.run(["git", "push", "origin", "main"], cwd=base_dir, capture_output=True, text=True)
-        if push_res.returncode == 0:
-            print("[SUCCESS] Successfully updated GitHub repository!")
-            print("[LIVE DASHBOARD URL] https://amith1994.github.io/Rainfall_status_of_Karnataka/")
-            return True
+        choice = input("\nDo you want to push these updates to GitHub now? (Y/N): ").strip().upper()
+        if choice == 'Y':
+            print("[INFO] Pushing changes to GitHub (origin/main)...")
+            push_res = subprocess.run(["git", "push", "origin", "main"], cwd=base_dir, capture_output=True, text=True)
+            if push_res.returncode == 0:
+                print("[SUCCESS] Successfully updated GitHub repository!")
+                print("[LIVE DASHBOARD URL] https://amith1994.github.io/Rainfall_status_of_Karnataka/")
+                return True
+            else:
+                print(f"[WARN] Git push output: {push_res.stderr or push_res.stdout}")
         else:
-            print(f"[WARN] Git push output: {push_res.stderr or push_res.stdout}")
+            print("[INFO] Git push skipped. Local files are updated.")
+            return True
     except Exception as e:
         print(f"[ERROR] Failed to push to GitHub: {e}")
     return False
