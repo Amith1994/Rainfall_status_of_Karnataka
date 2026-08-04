@@ -14,7 +14,7 @@ import shutil
 
 PERIOD_KEYS = [
     'jan', 'feb', 'jan_feb', 'mar', 'apr', 'may', 'pre_monsoon',
-    'june', 'last_24h', 'last_7d', 'july_mtd', 'sw_monsoon', 'oct', 'nov', 'dec', 'ne_monsoon', 'ytd'
+    'june', 'july', 'last_24h', 'last_7d', 'july_mtd', 'aug_mtd', 'sw_monsoon', 'oct', 'nov', 'dec', 'ne_monsoon', 'ytd'
 ]
 
 def safe_float(v):
@@ -44,54 +44,102 @@ def extract_data_date(excel_path):
     except:
         return datetime.datetime.now().strftime("%d-%b-%Y")
 
-def extract_period_dates(excel_path):
+def map_excel_period_keys(excel_path):
     try:
         df = pd.read_excel(excel_path, sheet_name='District', header=None, nrows=4)
         row2 = df.iloc[2].fillna('').to_dict()
-        keys = ['jan', 'feb', 'jan_feb', 'mar', 'apr', 'may', 'pre_monsoon', 'june', 'last_24h', 'last_7d', 'july_mtd', 'sw_monsoon', 'ytd']
-        col_indices = [7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37, 40, 43]
-        raw = {}
-        for k, c in zip(keys, col_indices):
-            raw[k] = str(row2.get(c, '')).replace('\n', ' ').strip()
+        
+        col_mapping = {}
+        extracted_dates = {}
+        end_date = '2nd August'
+        
+        for col in range(7, max(row2.keys()) + 1):
+            if col not in row2:
+                continue
+            text = str(row2[col]).replace('\n', ' ').strip()
+            if not text:
+                continue
+            t_low = text.lower()
             
-        m_sw = re.search(r'to\s+(\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+)', raw.get('sw_monsoon', ''), re.I)
-        end_date = m_sw.group(1).strip() if m_sw else '23rd July'
-        
-        m_7d = re.search(r'(\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+\s*to\s*\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+(?:\s*\d{4})?)', raw.get('last_7d', ''), re.I)
-        l7d_str = m_7d.group(1).strip() if m_7d else f'17th July to {end_date}'
-        
-        m_24h = re.search(r'of\s+(\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+(?:\s*[\-–]?\s*\d{4})?)', raw.get('last_24h', ''), re.I)
-        l24h_str = m_24h.group(1).strip() if m_24h else end_date
-        
-        return {
-            'sw_monsoon': f'June 1 – {end_date}',
-            'ne_monsoon': 'Oct 1 – Dec 31',
-            'july_mtd': f'July 1 – {end_date}',
-            'last_7d': l7d_str,
-            'last_24h': f'Ending 8:30 AM of {l24h_str}',
-            'pre_monsoon': 'March 1 – May 31',
-            'ytd': f'Jan 1 – {end_date}',
-            'end_date': end_date
-        }
+            key = None
+            if 'last 24' in t_low or '24 hrs' in t_low or '24hrs' in t_low:
+                key = 'last_24h'
+                m_24h = re.search(r'of\s+(\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+(?:\s*[\-–]?\s*\d{4})?)', text, re.I)
+                if m_24h: end_date = m_24h.group(1).strip()
+                extracted_dates['last_24h'] = f'Ending 8:30 AM of {end_date}'
+            elif 'last 7' in t_low or '7 days' in t_low:
+                key = 'last_7d'
+                m_7d = re.search(r'(\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+\s*to\s*\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+(?:\s*\d{4})?)', text, re.I)
+                extracted_dates['last_7d'] = m_7d.group(1).strip() if m_7d else text
+            elif 'pre-' in t_low or 'pre-monsoon' in t_low or 'pre monsoon' in t_low:
+                key = 'pre_monsoon'
+                extracted_dates['pre_monsoon'] = 'March 1 – May 31'
+            elif 'southwest' in t_low or 'sw - monsoon' in t_low or 'sw monsoon' in t_low:
+                key = 'sw_monsoon'
+                m_sw = re.search(r'to\s+(\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+)', text, re.I)
+                sw_end = m_sw.group(1).strip() if m_sw else end_date
+                extracted_dates['sw_monsoon'] = f'June 1 – {sw_end}'
+            elif 'northeast' in t_low or 'ne - monsoon' in t_low or 'ne monsoon' in t_low:
+                key = 'ne_monsoon'
+                extracted_dates['ne_monsoon'] = 'Oct 1 – Dec 31'
+            elif ('january' in t_low or '1st jan' in t_low) and ('february' in t_low or '28th feb' in t_low):
+                key = 'jan_feb'
+                extracted_dates['jan_feb'] = 'Jan 1 – Feb 28'
+            elif '1st jan' in t_low and 'to' in t_low:
+                key = 'ytd'
+                m_ytd = re.search(r'to\s+(\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+)', text, re.I)
+                ytd_end = m_ytd.group(1).strip() if m_ytd else end_date
+                extracted_dates['ytd'] = f'Jan 1 – {ytd_end}'
+            elif 'january' in t_low:
+                key = 'jan'
+                extracted_dates['jan'] = 'Jan 1 – Jan 31'
+            elif 'february' in t_low:
+                key = 'feb'
+                extracted_dates['feb'] = 'Feb 1 – Feb 28'
+            elif 'march' in t_low:
+                key = 'mar'
+                extracted_dates['mar'] = 'March 1 – March 31'
+            elif 'april' in t_low:
+                key = 'apr'
+                extracted_dates['apr'] = 'April 1 – April 30'
+            elif 'may' in t_low:
+                key = 'may'
+                extracted_dates['may'] = 'May 1 – May 31'
+            elif 'june' in t_low:
+                key = 'june'
+                extracted_dates['june'] = 'June 1 – June 30'
+            elif 'july' in t_low:
+                if 'mtd' in t_low or re.search(r'1st july to (?!31)', t_low):
+                    key = 'july_mtd'
+                    extracted_dates['july_mtd'] = f'July 1 – {end_date}'
+                else:
+                    key = 'july'
+                    extracted_dates['july'] = 'July 1 – July 31'
+            elif 'august' in t_low:
+                key = 'aug_mtd'
+                extracted_dates['aug_mtd'] = f'August 1 – {end_date}'
+            elif 'cumulative rainfall pattern' in t_low:
+                key = 'ytd'
+                m_ytd = re.search(r'to\s+(\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+)', text, re.I)
+                ytd_end = m_ytd.group(1).strip() if m_ytd else end_date
+                extracted_dates['ytd'] = f'Jan 1 – {ytd_end}'
+                
+            if key:
+                col_mapping[key] = col
+
+        extracted_dates['end_date'] = end_date
+        return col_mapping, extracted_dates
     except Exception as e:
-        print(f"[WARN] Failed to extract period dates: {e}")
-        return {
-            'sw_monsoon': 'June 1 – July 23',
-            'ne_monsoon': 'Oct 1 – Dec 31',
-            'july_mtd': 'July 1 – July 23',
-            'last_7d': '17th July to 23rd July 2026',
-            'last_24h': 'Ending 8:30 AM of 23rd July -2026',
-            'pre_monsoon': 'March 1 – May 31',
-            'ytd': 'Jan 1 – July 23',
-            'end_date': '23rd July'
-        }
+        print(f"[WARN] Failed to map period keys dynamically: {e}")
+        return {}, {'end_date': '2nd August'}
 
 def parse_ksndmc_excel(excel_path):
     print(f"[INFO] Reading KSNDMC Excel: {excel_path}")
     updated_date = extract_data_date(excel_path)
-    period_dates = extract_period_dates(excel_path)
+    col_mapping, period_dates = map_excel_period_keys(excel_path)
     print(f"[INFO] Extracted Data Updated Date: {updated_date}")
     print(f"[INFO] Extracted Period End Date: {period_dates.get('end_date')}")
+    print(f"[INFO] Mapped Period Keys: {list(col_mapping.keys())}")
     
     # 1. Parse District Sheet
     df_dist = pd.read_excel(excel_path, sheet_name='District')
@@ -109,7 +157,6 @@ def parse_ksndmc_excel(excel_path):
         region = safe_str(row.iloc[2])
         division = safe_str(row.iloc[5])
         
-        # Only parse actual district rows with numeric sl_no (1-31)
         if not sl_no.isdigit():
             continue
         
@@ -120,16 +167,15 @@ def parse_ksndmc_excel(excel_path):
             "division": division
         }
         
-        col_offset = 7
         for pkey in PERIOD_KEYS:
-            if col_offset + 2 < len(row):
-                norm = safe_float(row.iloc[col_offset])
-                act = safe_float(row.iloc[col_offset + 1])
-                dep = safe_float(row.iloc[col_offset + 2])
+            c = col_mapping.get(pkey)
+            if c is not None and c + 2 < len(row):
+                norm = safe_float(row.iloc[c])
+                act = safe_float(row.iloc[c + 1])
+                dep = safe_float(row.iloc[c + 2])
             else:
                 norm, act, dep = 0.0, 0.0, 0.0
             dist_entry[pkey] = {"normal": norm, "actual": act, "dep": dep}
-            col_offset += 3
             
         districts_data[dist_name] = dist_entry
 
@@ -155,16 +201,15 @@ def parse_ksndmc_excel(excel_path):
             "division": division
         }
         
-        col_offset = 11
         for pkey in PERIOD_KEYS:
-            if col_offset + 2 < len(row):
-                norm = safe_float(row.iloc[col_offset])
-                act = safe_float(row.iloc[col_offset + 1])
-                dep = safe_float(row.iloc[col_offset + 2])
+            c = col_mapping.get(pkey)
+            if c is not None and c + 2 < len(row):
+                norm = safe_float(row.iloc[c])
+                act = safe_float(row.iloc[c + 1])
+                dep = safe_float(row.iloc[c + 2])
             else:
                 norm, act, dep = 0.0, 0.0, 0.0
             taluk_entry[pkey] = {"normal": norm, "actual": act, "dep": dep}
-            col_offset += 3
             
         taluks_data.append(taluk_entry)
         

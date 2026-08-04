@@ -859,12 +859,13 @@
             <span>📅 Rainfall Season / Period</span>
           </div>
           <div class="period-pills-grid" style="margin-top:8px;">
-            <button class="p-pill full-width active" id="pill-sw_monsoon" data-period="sw_monsoon">🌊 SW Monsoon (June 1 - July 23)</button>
-            <button class="p-pill full-width" id="pill-july_mtd" data-period="july_mtd">📅 Month to Date (July 1 - 23)</button>
+            <button class="p-pill full-width active" id="pill-sw_monsoon" data-period="sw_monsoon">🌊 SW Monsoon (June 1 - Aug 2)</button>
+            <button class="p-pill full-width" id="pill-aug_mtd" data-period="aug_mtd">📅 Month to Date (Aug 1 - 2)</button>
             <button class="p-pill full-width" id="pill-last_24h" data-period="last_24h">⚡ Last 24 Hours</button>
-            <button class="p-pill full-width" id="pill-last_7d" data-period="last_7d">🗓️ Last 7 Days (July 17 - 23)</button>
+            <button class="p-pill full-width" id="pill-last_7d" data-period="last_7d">🗓️ Last 7 Days</button>
             <button class="p-pill full-width" id="pill-pre_monsoon" data-period="pre_monsoon">🌿 Pre-Monsoon (March - May)</button>
-            <button class="p-pill full-width" id="pill-ytd" data-period="ytd">📈 Year to Date (Jan 1 - July 23)</button>
+            <button class="p-pill full-width" id="pill-ytd" data-period="ytd">📈 Year to Date (Jan 1 - Aug 2)</button>
+            <button class="p-pill" data-period="july">July</button>
             <button class="p-pill" data-period="june">June</button>
             <button class="p-pill" data-period="may">May</button>
             <button class="p-pill" data-period="apr">April</button>
@@ -1521,7 +1522,7 @@ function updateMapTitle() {
 function renderDistrictDetailedAnalytics(distSvgName) {
   const distObj = getDistrictObj(distSvgName);
 
-  // 1. Monthly progression data (Jan - July)
+  // 1. Monthly progression data (Jan - July/Aug)
   const months = [
     { key: 'jan', label: 'Jan' },
     { key: 'feb', label: 'Feb' },
@@ -1529,7 +1530,8 @@ function renderDistrictDetailedAnalytics(distSvgName) {
     { key: 'apr', label: 'Apr' },
     { key: 'may', label: 'May' },
     { key: 'june', label: 'June' },
-    { key: 'july_mtd', label: 'July (MTD)' }
+    { key: 'july', label: 'July' },
+    { key: 'aug_mtd', label: 'Aug (MTD)' }
   ];
 
   let monthlyData = [];
@@ -1738,12 +1740,14 @@ function renderDistrictDetailedAnalytics(distSvgName) {
 }
 
 const PERIOD_DATE_MAP = {
-  'sw_monsoon': 'June 1, 2026 – July 23, 2026 (Southwest Monsoon Period)',
-  'july_mtd': 'July 1, 2026 – July 23, 2026 (Month-to-Date July)',
+  'sw_monsoon': 'June 1, 2026 – August 2, 2026 (Southwest Monsoon Period)',
+  'aug_mtd': 'August 1, 2026 – August 2, 2026 (Month-to-Date August)',
+  'july_mtd': 'July 1, 2026 – July 31, 2026 (Month-to-Date July)',
   'last_24h': 'Ending at 8:30 AM (Last 24 Hours IST)',
-  'last_7d': 'July 17, 2026 – July 23, 2026 (Last 7 Days Cumulative)',
+  'last_7d': 'July 27, 2026 – August 2, 2026 (Last 7 Days Cumulative)',
   'pre_monsoon': 'March 1, 2026 – May 31, 2026 (Pre-Monsoon Season)',
-  'ytd': 'January 1, 2026 – July 23, 2026 (Year-to-Date Cumulative)',
+  'ytd': 'January 1, 2026 – August 2, 2026 (Year-to-Date Cumulative)',
+  'july': 'July 1, 2026 – July 31, 2026 (Monthly July)',
   'june': 'June 1, 2026 – June 30, 2026 (Monthly June)',
   'may': 'May 1, 2026 – May 31, 2026 (Monthly May)',
   'apr': 'April 1, 2026 – April 30, 2026 (Monthly April)',
@@ -1757,8 +1761,11 @@ function updatePeriodLabelsUI() {
   const swPill = document.getElementById('pill-sw_monsoon');
   if (swPill && PERIOD_DATES.sw_monsoon) swPill.innerHTML = `🌊 SW Monsoon (${PERIOD_DATES.sw_monsoon})`;
   
-  const mtdPill = document.getElementById('pill-july_mtd');
-  if (mtdPill && PERIOD_DATES.july_mtd) mtdPill.innerHTML = `📅 Month to Date (${PERIOD_DATES.july_mtd})`;
+  const mtdPill = document.getElementById('pill-aug_mtd') || document.getElementById('pill-july_mtd');
+  if (mtdPill) {
+    const mtdStr = PERIOD_DATES.aug_mtd || PERIOD_DATES.july_mtd;
+    if (mtdStr) mtdPill.innerHTML = `📅 Month to Date (${mtdStr})`;
+  }
   
   const l7dPill = document.getElementById('pill-last_7d');
   if (l7dPill && PERIOD_DATES.last_7d) l7dPill.innerHTML = `🗓️ Last 7 Days (${PERIOD_DATES.last_7d})`;
@@ -1767,13 +1774,15 @@ function updatePeriodLabelsUI() {
   if (ytdPill && PERIOD_DATES.ytd) ytdPill.innerHTML = `📈 Year to Date (${PERIOD_DATES.ytd})`;
 
   if (PERIOD_DATES.sw_monsoon) PERIOD_DATE_MAP['sw_monsoon'] = `${PERIOD_DATES.sw_monsoon} (Southwest Monsoon Period)`;
+  if (PERIOD_DATES.aug_mtd) PERIOD_DATE_MAP['aug_mtd'] = `${PERIOD_DATES.aug_mtd} (Month-to-Date August)`;
   if (PERIOD_DATES.july_mtd) PERIOD_DATE_MAP['july_mtd'] = `${PERIOD_DATES.july_mtd} (Month-to-Date July)`;
+  if (PERIOD_DATES.july) PERIOD_DATE_MAP['july'] = `${PERIOD_DATES.july} (Monthly July)`;
   if (PERIOD_DATES.last_24h) PERIOD_DATE_MAP['last_24h'] = `${PERIOD_DATES.last_24h}`;
   if (PERIOD_DATES.last_7d) PERIOD_DATE_MAP['last_7d'] = `${PERIOD_DATES.last_7d} (Last 7 Days Cumulative)`;
   if (PERIOD_DATES.ytd) PERIOD_DATE_MAP['ytd'] = `${PERIOD_DATES.ytd} (Year-to-Date Cumulative)`;
 
   const chartAsOn = document.getElementById('chart-as-on-date');
-  if (chartAsOn) chartAsOn.textContent = `As on ${PERIOD_DATES.end_date || UPDATED_DATE || '23 July 2026'}`;
+  if (chartAsOn) chartAsOn.textContent = `As on ${PERIOD_DATES.end_date || UPDATED_DATE || '2 August 2026'}`;
 }
 
 function renderRegionalSeasonalAnalytics(regionKey) {
