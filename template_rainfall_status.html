@@ -1646,10 +1646,9 @@ function getDistrictMetrics(distSvgName, periodKey) {
 }
 
 function resetAllFilters() {
-  state.metric = 'category';
-  state.region = 'ALL';
   state.selectedDistrict = null;
   state.selectedCategory = null;
+  state.region = 'ALL';
   mapZoom = 1;
   panX = 0;
   panY = 0;
@@ -1664,10 +1663,7 @@ function resetAllFilters() {
     legBox.classList.remove('minimized');
   }
 
-  document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('active'));
-  const defaultMetric = document.querySelector('.m-btn[data-metric="category"]');
-  if (defaultMetric) defaultMetric.classList.add('active');
-
+  // Update Region Pills UI to ALL
   document.querySelectorAll('.r-pill').forEach(r => r.classList.remove('active'));
   const defaultRegion = document.querySelector('.r-pill[data-region="ALL"]');
   if (defaultRegion) defaultRegion.classList.add('active');
