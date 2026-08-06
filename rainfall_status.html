@@ -1743,8 +1743,49 @@ function selectDistrict(svgName) {
   updateMapColors(); renderTable(); updateDistrictSummaryBox();
 }
 
-function isDistrictMatchingCategory(m, metric, selectedCat) {
+function isDistrictMatchingCategory(distSvgName, metric, selectedCat) {
   if (!selectedCat) return true;
+  if (!distSvgName) return false;
+  const upperSvg = distSvgName.toUpperCase();
+
+  let matches = false;
+
+  if (typeof DISTRICT_DATA !== 'undefined') {
+    Object.entries(DISTRICT_DATA).forEach(([exName, obj]) => {
+      const exUpper = exName.toUpperCase();
+      const mappedName = (typeof EXCEL_TO_SVG_MAP !== 'undefined' && EXCEL_TO_SVG_MAP[exUpper]) ? EXCEL_TO_SVG_MAP[exUpper] : exName;
+
+      if (mappedName.toUpperCase() === upperSvg || exUpper === upperSvg) {
+        const pData = obj[state.period] || { normal: 0, actual: 0, dep: 0 };
+        const act = pData.actual || 0;
+        const norm = pData.normal || 0;
+        const dep = norm > 0 ? round1(((act - norm) / norm) * 100) : (pData.dep || 0);
+
+        if (metric === 'actual') {
+          let key = '>=100';
+          if (act <= 0) key = '0';
+          else if (act < 10) key = '<10';
+          else if (act < 25) key = '10-25';
+          else if (act < 50) key = '25-50';
+          else if (act < 100) key = '50-100';
+          if (key === selectedCat) matches = true;
+        } else if (metric === 'normal') {
+          let key = '>=100';
+          if (norm < 10) key = '<10';
+          else if (norm < 50) key = '10-50';
+          else if (norm < 100) key = '50-100';
+          if (key === selectedCat) matches = true;
+        } else {
+          const cat = getRainfallCategory(act, norm, dep);
+          if (cat.code === selectedCat) matches = true;
+        }
+      }
+    });
+  }
+
+  if (matches) return true;
+
+  const m = getDistrictMetrics(distSvgName, state.period);
   if (metric === 'actual') {
     let key = '>=100';
     if (m.actual <= 0) key = '0';
@@ -1790,7 +1831,7 @@ function updateMapColors() {
     path.setAttribute('fill', color); path.style.fill = color;
 
     const isRegionMatch = (state.region === 'ALL' || normReg === normalizeRegion(state.region));
-    const isCategoryMatch = isDistrictMatchingCategory(m, state.metric, state.selectedCategory);
+    const isCategoryMatch = isDistrictMatchingCategory(svgName, state.metric, state.selectedCategory);
     if (!isRegionMatch || !isCategoryMatch) {
       path.classList.add('dimmed');
     }
@@ -1808,8 +1849,7 @@ function updateMapColors() {
     lbl.classList.remove('selected', 'dimmed');
 
     const isRegionMatch = (state.region === 'ALL' || normReg === normalizeRegion(state.region));
-    const m = getDistrictMetrics(svgName, state.period);
-    const isCategoryMatch = isDistrictMatchingCategory(m, state.metric, state.selectedCategory);
+    const isCategoryMatch = isDistrictMatchingCategory(svgName, state.metric, state.selectedCategory);
     if (!isRegionMatch || !isCategoryMatch) {
       lbl.classList.add('dimmed');
     }
