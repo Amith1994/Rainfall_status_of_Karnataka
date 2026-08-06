@@ -1647,7 +1647,6 @@ function getDistrictMetrics(distSvgName, periodKey) {
 }
 
 function resetAllFilters() {
-  state.period = 'sw_monsoon';
   state.metric = 'category';
   state.region = 'ALL';
   state.selectedDistrict = null;
@@ -1665,10 +1664,6 @@ function resetAllFilters() {
     legBox.style.right = '';
     legBox.classList.remove('minimized');
   }
-
-  document.querySelectorAll('.p-pill').forEach(p => p.classList.remove('active'));
-  const defaultPill = document.getElementById('pill-sw_monsoon');
-  if (defaultPill) defaultPill.classList.add('active');
 
   document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('active'));
   const defaultMetric = document.querySelector('.m-btn[data-metric="category"]');
@@ -1740,7 +1735,13 @@ function isDistrictMatchingCategory(m, metric, selectedCat) {
   return m.cat.code === selectedCat;
 }
 
-function selectLegendCategory(catCode) {
+function selectLegendCategory(catCode, count) {
+  if (count === 0) {
+    state.selectedCategory = null;
+    alert(`No districts fall into this category for the selected time period.`);
+    updateAll();
+    return;
+  }
   state.selectedCategory = (state.selectedCategory === catCode) ? null : catCode;
   updateAll();
 }
@@ -1887,7 +1888,7 @@ function updateLegend() {
   itemsContainer.innerHTML = legendDefs.map(item => {
     const isActive = state.selectedCategory === item.code;
     return `
-      <div class="v-legend-item ${isActive ? 'active-legend-item' : ''}" onclick="selectLegendCategory('${item.code}')" title="Click to focus/highlight ${item.count} districts">
+      <div class="v-legend-item ${isActive ? 'active-legend-item' : ''}" onclick="selectLegendCategory('${item.code}', ${item.count})" title="Click to focus ${item.count} districts">
         <div class="v-legend-color" style="background:${item.color}"></div>
         <div class="v-legend-label">
           <span class="v-legend-text">${item.label}</span>
