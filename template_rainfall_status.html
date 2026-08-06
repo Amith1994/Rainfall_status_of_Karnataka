@@ -452,6 +452,33 @@
   }
   .z-btn:hover { background: #e0f2fe; color: #0284c7; }
 
+  /* Map Header Reset Button */
+  .map-reset-action-btn {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    border: none;
+    color: #ffffff;
+    font-family: var(--font-primary);
+    font-size: 12px;
+    font-weight: 800;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 3px 10px rgba(2, 132, 199, 0.35);
+    transition: all 0.2s ease;
+    letter-spacing: 0.3px;
+  }
+  .map-reset-action-btn:hover {
+    background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+    box-shadow: 0 5px 14px rgba(2, 132, 199, 0.5);
+    transform: translateY(-1px);
+  }
+  .map-reset-action-btn:active {
+    transform: translateY(0);
+  }
+
   #karnataka-svg-container {
     width: 100%;
     height: 580px;
@@ -1061,14 +1088,21 @@
       <!-- RIGHT MAP CANVAS (70%) -->
       <div class="map-container-70">
         <div class="map-top-bar">
-          <div class="map-heading">
-            <span id="map-header-metric">🌧️ Karnataka Rainfall Status Map</span>
-            <span style="font-size:13px; font-weight:600; color:#64748b; font-style:italic;" id="map-header-period">(Southwest Monsoon Period)</span>
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <div class="map-heading">
+              <span id="map-header-metric">🌧️ Karnataka Rainfall Status Map</span>
+              <span style="font-size:13px; font-weight:600; color:#64748b; font-style:italic;" id="map-header-period">(Southwest Monsoon Period)</span>
+            </div>
+            <div style="margin-top:4px;">
+              <button class="map-reset-action-btn" id="map-header-reset-btn" onclick="resetAllFilters()" title="Reset Map View & Show Full Karnataka Map">
+                ⟳ RESET MAP (SHOW WHOLE KARNATAKA)
+              </button>
+            </div>
           </div>
           <div class="zoom-box">
             <button class="z-btn" id="zoom-in-btn" title="Zoom In">+</button>
             <button class="z-btn" id="zoom-out-btn" title="Zoom Out">−</button>
-            <button class="z-btn" id="zoom-reset-btn" title="Reset Zoom">⟳</button>
+            <button class="z-btn" id="zoom-reset-btn" onclick="resetAllFilters()" title="Reset Map">⟳</button>
           </div>
         </div>
 
@@ -1816,17 +1850,17 @@ function updateLegend() {
   const titleText = document.getElementById('legend-title-text');
   if (!itemsContainer) return;
 
-  // Calculate district counts for active region filter using exact SVG map districts
+  // Calculate district counts across all 31 districts of Karnataka
   let counts = {};
-  if (typeof KARNATAKA_DISTRICT_SVG !== 'undefined') {
-    Object.keys(KARNATAKA_DISTRICT_SVG).forEach(svgName => {
-      const distSvgObj = KARNATAKA_DISTRICT_SVG[svgName];
-      const normReg = normalizeRegion(distSvgObj ? distSvgObj.region : '');
+  if (typeof DISTRICT_DATA !== 'undefined') {
+    Object.entries(DISTRICT_DATA).forEach(([distName, distObj]) => {
+      const normReg = normalizeRegion(distObj.region);
       if (state.region !== 'ALL' && normReg !== normalizeRegion(state.region)) return;
 
-      const m = getDistrictMetrics(svgName, state.period);
-      const act = m.actual;
-      const norm = m.normal;
+      const pData = distObj[state.period] || { normal: 0, actual: 0, dep: 0 };
+      const act = pData.actual || 0;
+      const norm = pData.normal || 0;
+      const dep = norm > 0 ? round1(((act - norm) / norm) * 100) : (pData.dep || 0);
 
       if (state.metric === 'actual') {
         let key = '>=100';
@@ -1843,7 +1877,8 @@ function updateLegend() {
         else if (norm < 100) key = '50-100';
         counts[key] = (counts[key] || 0) + 1;
       } else {
-        counts[m.cat.code] = (counts[m.cat.code] || 0) + 1;
+        const cat = getRainfallCategory(act, norm, dep);
+        counts[cat.code] = (counts[cat.code] || 0) + 1;
       }
     });
   }
