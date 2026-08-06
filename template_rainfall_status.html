@@ -558,10 +558,22 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 8px;
+    cursor: grab;
+    user-select: none;
+  }
+  .legend-header:active {
+    cursor: grabbing;
   }
   .legend-box.minimized .legend-header {
-    gap: 8px;
+    gap: 6px;
+  }
+  .drag-handle {
+    font-size: 13px;
+    color: #94a3b8;
+    cursor: grab;
+    user-select: none;
+    line-height: 1;
   }
   .legend-title {
     font-size: 11.5px;
@@ -581,6 +593,27 @@
     padding: 2px 7px;
     border-radius: 6px;
     border: 1px solid rgba(2, 132, 199, 0.3);
+  }
+  .legend-reset-btn {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .legend-reset-btn:hover {
+    background: #0284c7;
+    color: #ffffff;
+    border-color: #0284c7;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
+  }
+  .legend-box.minimized .legend-reset-btn {
+    display: none;
   }
   .legend-toggle-btn {
     background: transparent;
@@ -612,7 +645,20 @@
     font-size: 12px;
     font-weight: 700;
     color: #1e293b;
-    padding: 2px 0;
+    padding: 4px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1.5px solid transparent;
+  }
+  .v-legend-item:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+  .v-legend-item.active-legend-item {
+    background: #e0f2fe;
+    border-color: #0284c7;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
   }
   .v-legend-color {
     width: 16px;
@@ -635,10 +681,16 @@
   .v-legend-count {
     font-size: 11px;
     font-weight: 800;
-    color: #64748b;
-    background: #f1f5f9;
-    padding: 1px 6px;
-    border-radius: 4px;
+    color: #0f172a;
+    background: #e2e8f0;
+    padding: 1px 7px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+  .v-legend-item:hover .v-legend-count,
+  .v-legend-item.active-legend-item .v-legend-count {
+    background: #0284c7;
+    color: #ffffff;
   }
 
   /* OVERVIEW SUMMARY BOX */
@@ -1028,10 +1080,12 @@
         </div>
 
         <div class="legend-box" id="legend-container">
-          <div class="legend-header">
+          <div class="legend-header" id="legend-drag-handle" title="Click & Drag to Move Legend Anywhere">
+            <span class="drag-handle" title="Drag Handle">⠿</span>
             <span class="legend-title" id="legend-title-text">Rainfall Status</span>
             <span class="zoom-badge" id="zoom-level-indicator">100%</span>
-            <button class="legend-toggle-btn" id="legend-toggle-btn" title="Toggle Legend">−</button>
+            <button class="legend-reset-btn" id="legend-reset-btn" type="button" onclick="event.preventDefault(); event.stopPropagation(); resetAllFilters();" title="Reset All Filters & Show Whole Map">⟳ Show Whole Map</button>
+            <button class="legend-toggle-btn" id="legend-toggle-btn" type="button" onclick="event.stopPropagation();" title="Toggle Legend">−</button>
           </div>
           <div class="legend-body" id="legend-items">
             <!-- Rendered dynamically -->
@@ -1202,6 +1256,7 @@ let state = {
   metric: 'category',
   region: 'ALL',
   selectedDistrict: null,
+  selectedCategory: null,
   tableView: 'taluk',
   sortCol: 'dep',
   sortAsc: false
@@ -1274,6 +1329,7 @@ function initMetricButtons() {
       document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       state.metric = btn.dataset.metric;
+      state.selectedCategory = null;
       updateAll();
     });
   });
@@ -1297,11 +1353,21 @@ function initZoomControls() {
 
   document.getElementById('zoom-in-btn').addEventListener('click', () => { mapZoom = Math.min(mapZoom + 0.25, 4.0); applyMapTransform(); });
   document.getElementById('zoom-out-btn').addEventListener('click', () => { mapZoom = Math.max(mapZoom - 0.25, 0.5); applyMapTransform(); });
-  document.getElementById('zoom-reset-btn').addEventListener('click', () => { mapZoom = 1; panX = 0; panY = 0; applyMapTransform(); });
+  document.getElementById('zoom-reset-btn').addEventListener('click', () => { resetAllFilters(); });
+
+  const legendResetBtn = document.getElementById('legend-reset-btn');
+  if (legendResetBtn) {
+    legendResetBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      resetAllFilters();
+    });
+  }
 
   const toggleBtn = document.getElementById('legend-toggle-btn');
   if (toggleBtn) {
-    toggleBtn.addEventListener('click', () => {
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       const legBox = document.getElementById('legend-container');
       if (legBox) {
         legBox.classList.toggle('minimized');
@@ -1330,6 +1396,88 @@ function initZoomControls() {
   });
 
   window.addEventListener('mouseup', () => { if (isDraggingMap) { isDraggingMap = false; wrapper.style.cursor = 'grab'; } });
+  initDraggableLegend();
+}
+
+function initDraggableLegend() {
+  const legBox = document.getElementById('legend-container');
+  const dragHandle = document.getElementById('legend-drag-handle');
+  const container = document.querySelector('.map-container-70');
+  if (!legBox || !dragHandle || !container) return;
+
+  let isDraggingLegend = false;
+  let startX = 0, startY = 0;
+  let initialLeft = 0, initialTop = 0;
+
+  function onPointerDown(e) {
+    if (e.target.closest('#legend-toggle-btn') || e.target.closest('#legend-reset-btn') || e.target.closest('button')) return;
+    
+    isDraggingLegend = true;
+    dragHandle.style.cursor = 'grabbing';
+    document.body.style.userSelect = 'none';
+
+    const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+    const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY;
+
+    const rect = legBox.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+
+    startX = clientX;
+    startY = clientY;
+
+    initialLeft = rect.left - containerRect.left;
+    initialTop = rect.top - containerRect.top;
+
+    legBox.style.bottom = 'auto';
+    legBox.style.right = 'auto';
+    legBox.style.left = `${initialLeft}px`;
+    legBox.style.top = `${initialTop}px`;
+
+    e.stopPropagation();
+  }
+
+  function onPointerMove(e) {
+    if (!isDraggingLegend) return;
+
+    const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+    const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY;
+
+    const dx = clientX - startX;
+    const dy = clientY - startY;
+
+    const containerRect = container.getBoundingClientRect();
+    const legRect = legBox.getBoundingClientRect();
+
+    let newLeft = initialLeft + dx;
+    let newTop = initialTop + dy;
+
+    const maxLeft = containerRect.width - legRect.width - 5;
+    const maxTop = containerRect.height - legRect.height - 5;
+
+    newLeft = Math.max(5, Math.min(newLeft, maxLeft));
+    newTop = Math.max(5, Math.min(newTop, maxTop));
+
+    legBox.style.left = `${newLeft}px`;
+    legBox.style.top = `${newTop}px`;
+
+    if (e.cancelable) e.preventDefault();
+    e.stopPropagation();
+  }
+
+  function onPointerUp() {
+    if (!isDraggingLegend) return;
+    isDraggingLegend = false;
+    dragHandle.style.cursor = 'grab';
+    document.body.style.userSelect = '';
+  }
+
+  dragHandle.addEventListener('mousedown', onPointerDown);
+  window.addEventListener('mousemove', onPointerMove);
+  window.addEventListener('mouseup', onPointerUp);
+
+  dragHandle.addEventListener('touchstart', onPointerDown, { passive: false });
+  window.addEventListener('touchmove', onPointerMove, { passive: false });
+  window.addEventListener('touchend', onPointerUp);
 }
 
 function initMap() {
@@ -1470,18 +1618,70 @@ function getDistrictObj(distSvgName) {
 }
 
 function getDistrictMetrics(distSvgName, periodKey) {
-  const d = getDistrictObj(distSvgName);
-  let totAct = 0, totNorm = 0, count = 0;
-  if (d && d[periodKey]) {
-    totAct = d[periodKey].actual;
-    totNorm = d[periodKey].normal;
-    count = 1;
+  if (!distSvgName) return { actual: 0, normal: 0, dep: 0, cat: getRainfallCategory(0, 0, 0) };
+  const upperSvg = distSvgName.toUpperCase();
+
+  let totAct = 0, totNorm = 0, count = 0, directDepSum = 0;
+
+  if (typeof DISTRICT_DATA !== 'undefined') {
+    Object.entries(DISTRICT_DATA).forEach(([exName, obj]) => {
+      const exUpper = exName.toUpperCase();
+      const mappedName = (typeof EXCEL_TO_SVG_MAP !== 'undefined' && EXCEL_TO_SVG_MAP[exUpper]) ? EXCEL_TO_SVG_MAP[exUpper] : exName;
+      
+      if (mappedName.toUpperCase() === upperSvg || exUpper === upperSvg) {
+        if (obj && obj[periodKey]) {
+          totAct += obj[periodKey].actual || 0;
+          totNorm += obj[periodKey].normal || 0;
+          directDepSum += obj[periodKey].dep || 0;
+          count++;
+        }
+      }
+    });
   }
-  const avgAct = count > 0 ? round1(totAct) : 0;
-  const avgNorm = count > 0 ? round1(totNorm) : 0;
-  const dep = avgNorm > 0 ? round1(((avgAct - avgNorm) / avgNorm) * 100) : 0;
+
+  const avgAct = count > 0 ? round1(totAct / count) : 0;
+  const avgNorm = count > 0 ? round1(totNorm / count) : 0;
+  const dep = avgNorm > 0 ? round1(((avgAct - avgNorm) / avgNorm) * 100) : (count > 0 ? round1(directDepSum / count) : 0);
   const cat = getRainfallCategory(avgAct, avgNorm, dep);
   return { actual: avgAct, normal: avgNorm, dep: dep, cat: cat };
+}
+
+function resetAllFilters() {
+  state.period = 'sw_monsoon';
+  state.metric = 'category';
+  state.region = 'ALL';
+  state.selectedDistrict = null;
+  state.selectedCategory = null;
+  mapZoom = 1;
+  panX = 0;
+  panY = 0;
+  applyMapTransform();
+
+  const legBox = document.getElementById('legend-container');
+  if (legBox) {
+    legBox.style.left = '';
+    legBox.style.top = '';
+    legBox.style.bottom = '';
+    legBox.style.right = '';
+    legBox.classList.remove('minimized');
+  }
+
+  document.querySelectorAll('.p-pill').forEach(p => p.classList.remove('active'));
+  const defaultPill = document.getElementById('pill-sw_monsoon');
+  if (defaultPill) defaultPill.classList.add('active');
+
+  document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('active'));
+  const defaultMetric = document.querySelector('.m-btn[data-metric="category"]');
+  if (defaultMetric) defaultMetric.classList.add('active');
+
+  document.querySelectorAll('.r-pill').forEach(r => r.classList.remove('active'));
+  const defaultRegion = document.querySelector('.r-pill[data-region="ALL"]');
+  if (defaultRegion) defaultRegion.classList.add('active');
+
+  const infoBox = document.getElementById('selected-district-info');
+  if (infoBox) infoBox.style.display = 'none';
+
+  updateAll();
 }
 
 function round1(v) { return Math.round(v * 10) / 10; }
@@ -1519,6 +1719,32 @@ function selectDistrict(svgName) {
   updateMapColors(); renderTable(); updateDistrictSummaryBox();
 }
 
+function isDistrictMatchingCategory(m, metric, selectedCat) {
+  if (!selectedCat) return true;
+  if (metric === 'actual') {
+    let key = '>=100';
+    if (m.actual <= 0) key = '0';
+    else if (m.actual < 10) key = '<10';
+    else if (m.actual < 25) key = '10-25';
+    else if (m.actual < 50) key = '25-50';
+    else if (m.actual < 100) key = '50-100';
+    return key === selectedCat;
+  }
+  if (metric === 'normal') {
+    let key = '>=100';
+    if (m.normal < 10) key = '<10';
+    else if (m.normal < 50) key = '10-50';
+    else if (m.normal < 100) key = '50-100';
+    return key === selectedCat;
+  }
+  return m.cat.code === selectedCat;
+}
+
+function selectLegendCategory(catCode) {
+  state.selectedCategory = (state.selectedCategory === catCode) ? null : catCode;
+  updateAll();
+}
+
 function updateMapColors() {
   const pathGroup = document.getElementById('path-group');
   const labelGroup = document.getElementById('label-group');
@@ -1534,7 +1760,8 @@ function updateMapColors() {
     path.setAttribute('fill', color); path.style.fill = color;
 
     const isRegionMatch = (state.region === 'ALL' || normReg === normalizeRegion(state.region));
-    if (!isRegionMatch) {
+    const isCategoryMatch = isDistrictMatchingCategory(m, state.metric, state.selectedCategory);
+    if (!isRegionMatch || !isCategoryMatch) {
       path.classList.add('dimmed');
     }
 
@@ -1551,7 +1778,9 @@ function updateMapColors() {
     lbl.classList.remove('selected', 'dimmed');
 
     const isRegionMatch = (state.region === 'ALL' || normReg === normalizeRegion(state.region));
-    if (!isRegionMatch) {
+    const m = getDistrictMetrics(svgName, state.period);
+    const isCategoryMatch = isDistrictMatchingCategory(m, state.metric, state.selectedCategory);
+    if (!isRegionMatch || !isCategoryMatch) {
       lbl.classList.add('dimmed');
     }
 
@@ -1591,77 +1820,82 @@ function updateLegend() {
   const titleText = document.getElementById('legend-title-text');
   if (!itemsContainer) return;
 
-  // Calculate district counts for current active region filter
+  // Calculate district counts for active region filter using exact SVG map districts
   let counts = {};
-  Object.entries(DISTRICT_DATA).forEach(([distName, distObj]) => {
-    const normReg = normalizeRegion(distObj.region);
-    if (state.region !== 'ALL' && normReg !== normalizeRegion(state.region)) return;
-    const pData = distObj[state.period] || { normal: 0, actual: 0, dep: 0 };
-    const act = pData.actual;
-    const norm = pData.normal;
-    const dep = norm > 0 ? round1(((act - norm) / norm) * 100) : pData.dep;
+  if (typeof KARNATAKA_DISTRICT_SVG !== 'undefined') {
+    Object.keys(KARNATAKA_DISTRICT_SVG).forEach(svgName => {
+      const distSvgObj = KARNATAKA_DISTRICT_SVG[svgName];
+      const normReg = normalizeRegion(distSvgObj ? distSvgObj.region : '');
+      if (state.region !== 'ALL' && normReg !== normalizeRegion(state.region)) return;
 
-    if (state.metric === 'actual') {
-      let key = '>=100';
-      if (act <= 0) key = '0';
-      else if (act < 10) key = '<10';
-      else if (act < 25) key = '10-25';
-      else if (act < 50) key = '25-50';
-      else if (act < 100) key = '50-100';
-      counts[key] = (counts[key] || 0) + 1;
-    } else if (state.metric === 'normal') {
-      let key = '>=100';
-      if (norm < 10) key = '<10';
-      else if (norm < 50) key = '10-50';
-      else if (norm < 100) key = '50-100';
-      counts[key] = (counts[key] || 0) + 1;
-    } else {
-      const cat = getRainfallCategory(act, norm, dep);
-      counts[cat.code] = (counts[cat.code] || 0) + 1;
-    }
-  });
+      const m = getDistrictMetrics(svgName, state.period);
+      const act = m.actual;
+      const norm = m.normal;
+
+      if (state.metric === 'actual') {
+        let key = '>=100';
+        if (act <= 0) key = '0';
+        else if (act < 10) key = '<10';
+        else if (act < 25) key = '10-25';
+        else if (act < 50) key = '25-50';
+        else if (act < 100) key = '50-100';
+        counts[key] = (counts[key] || 0) + 1;
+      } else if (state.metric === 'normal') {
+        let key = '>=100';
+        if (norm < 10) key = '<10';
+        else if (norm < 50) key = '10-50';
+        else if (norm < 100) key = '50-100';
+        counts[key] = (counts[key] || 0) + 1;
+      } else {
+        counts[m.cat.code] = (counts[m.cat.code] || 0) + 1;
+      }
+    });
+  }
 
   let legendDefs = [];
 
   if (state.metric === 'actual') {
     if (titleText) titleText.textContent = 'Actual Rainfall';
     legendDefs = [
-      { label: '≥ 100 mm', color: '#991b1b', count: counts['>=100'] || 0 },
-      { label: '50 – 100 mm', color: '#5b21b6', count: counts['50-100'] || 0 },
-      { label: '25 – 50 mm', color: '#1e40af', count: counts['25-50'] || 0 },
-      { label: '10 – 25 mm', color: '#047857', count: counts['10-25'] || 0 },
-      { label: '< 10 mm', color: '#0284c7', count: counts['<10'] || 0 },
-      { label: 'No Rain (0 mm)', color: '#475569', count: counts['0'] || 0 }
+      { code: '>=100', label: '≥ 100 mm', color: '#991b1b', count: counts['>=100'] || 0 },
+      { code: '50-100', label: '50 – 100 mm', color: '#5b21b6', count: counts['50-100'] || 0 },
+      { code: '25-50', label: '25 – 50 mm', color: '#1e40af', count: counts['25-50'] || 0 },
+      { code: '10-25', label: '10 – 25 mm', color: '#047857', count: counts['10-25'] || 0 },
+      { code: '<10', label: '< 10 mm', color: '#0284c7', count: counts['<10'] || 0 },
+      { code: '0', label: 'No Rain (0 mm)', color: '#475569', count: counts['0'] || 0 }
     ];
   } else if (state.metric === 'normal') {
     if (titleText) titleText.textContent = 'Normal Rainfall';
     legendDefs = [
-      { label: '≥ 100 mm', color: '#1e40af', count: counts['>=100'] || 0 },
-      { label: '50 – 100 mm', color: '#047857', count: counts['50-100'] || 0 },
-      { label: '10 – 50 mm', color: '#0284c7', count: counts['10-50'] || 0 },
-      { label: '< 10 mm', color: '#94a3b8', count: counts['<10'] || 0 }
+      { code: '>=100', label: '≥ 100 mm', color: '#1e40af', count: counts['>=100'] || 0 },
+      { code: '50-100', label: '50 – 100 mm', color: '#047857', count: counts['50-100'] || 0 },
+      { code: '10-50', label: '10 – 50 mm', color: '#0284c7', count: counts['10-50'] || 0 },
+      { code: '<10', label: '< 10 mm', color: '#94a3b8', count: counts['<10'] || 0 }
     ];
   } else {
     if (titleText) titleText.textContent = 'Rainfall Status';
     legendDefs = [
-      { label: 'Large Excess (+60%)', color: '#2563eb', count: counts['LE'] || 0 },
-      { label: 'Excess (+20%)', color: '#0284c7', count: counts['E'] || 0 },
-      { label: 'Normal (±19%)', color: '#059669', count: counts['N'] || 0 },
-      { label: 'Deficient (-20%)', color: '#d97706', count: counts['D'] || 0 },
-      { label: 'Large Deficient (-60%)', color: '#dc2626', count: counts['LD'] || 0 },
-      { label: 'No Rain (0 mm)', color: '#475569', count: counts['NR'] || 0 }
+      { code: 'LE', label: 'Large Excess (+60%)', color: '#2563eb', count: counts['LE'] || 0 },
+      { code: 'E', label: 'Excess (+20%)', color: '#0284c7', count: counts['E'] || 0 },
+      { code: 'N', label: 'Normal (±19%)', color: '#059669', count: counts['N'] || 0 },
+      { code: 'D', label: 'Deficient (-20%)', color: '#d97706', count: counts['D'] || 0 },
+      { code: 'LD', label: 'Large Deficient (-60%)', color: '#dc2626', count: counts['LD'] || 0 },
+      { code: 'NR', label: 'No Rain (0 mm)', color: '#475569', count: counts['NR'] || 0 }
     ];
   }
 
-  itemsContainer.innerHTML = legendDefs.map(item => `
-    <div class="v-legend-item">
-      <div class="v-legend-color" style="background:${item.color}"></div>
-      <div class="v-legend-label">
-        <span class="v-legend-text">${item.label}</span>
-        <span class="v-legend-count" title="${item.count} Districts">${item.count}</span>
+  itemsContainer.innerHTML = legendDefs.map(item => {
+    const isActive = state.selectedCategory === item.code;
+    return `
+      <div class="v-legend-item ${isActive ? 'active-legend-item' : ''}" onclick="selectLegendCategory('${item.code}')" title="Click to focus/highlight ${item.count} districts">
+        <div class="v-legend-color" style="background:${item.color}"></div>
+        <div class="v-legend-label">
+          <span class="v-legend-text">${item.label}</span>
+          <span class="v-legend-count" title="${item.count} Districts">${item.count}</span>
+        </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function updateKPIs() {
