@@ -1388,6 +1388,15 @@ function initZoomControls() {
   document.getElementById('zoom-out-btn').addEventListener('click', () => { mapZoom = Math.max(mapZoom - 0.25, 0.5); applyMapTransform(); });
   document.getElementById('zoom-reset-btn').addEventListener('click', () => { resetAllFilters(); });
 
+  const mapHeaderResetBtn = document.getElementById('map-header-reset-btn');
+  if (mapHeaderResetBtn) {
+    mapHeaderResetBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      resetAllFilters();
+    });
+  }
+
   const legendResetBtn = document.getElementById('legend-reset-btn');
   if (legendResetBtn) {
     legendResetBtn.addEventListener('click', (e) => {
@@ -1708,6 +1717,8 @@ function resetAllFilters() {
   updateAll();
 }
 
+window.resetAllFilters = resetAllFilters;
+
 function round1(v) { return Math.round(v * 10) / 10; }
 
 function showTooltip(e, svgName) {
@@ -1827,11 +1838,27 @@ function updateMapColors() {
 
     path.classList.remove('selected', 'dimmed');
     const m = getDistrictMetrics(svgName, state.period);
-    const color = getColorForMetric(m.actual, m.normal, m.dep, state.metric);
-    path.setAttribute('fill', color); path.style.fill = color;
+    let color = getColorForMetric(m.actual, m.normal, m.dep, state.metric);
 
     const isRegionMatch = (state.region === 'ALL' || normReg === normalizeRegion(state.region));
     const isCategoryMatch = isDistrictMatchingCategory(svgName, state.metric, state.selectedCategory);
+
+    if (state.selectedCategory && isCategoryMatch && state.metric === 'category') {
+      const catColorMap = {
+        'LE': '#2563eb', // Large Excess (Blue)
+        'E':  '#0284c7', // Excess (Sky Blue)
+        'N':  '#059669', // Normal (Green)
+        'D':  '#d97706', // Deficient (Yellow/Gold)
+        'LD': '#dc2626', // Large Deficient (RED!)
+        'NR': '#475569'  // No Rain (Slate Gray)
+      };
+      if (catColorMap[state.selectedCategory]) {
+        color = catColorMap[state.selectedCategory];
+      }
+    }
+
+    path.setAttribute('fill', color); path.style.fill = color;
+
     if (!isRegionMatch || !isCategoryMatch) {
       path.classList.add('dimmed');
     }
